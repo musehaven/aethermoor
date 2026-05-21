@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aethermoor — The Domed City</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+:root {
+  --gold: #d4af37;
+  --gold-dim: #8b6914;
+  --dark: #0d0a06;
+  --dark-mid: #1a1208;
+  --dark-panel: #120e07;
+  --red-dark: #5a0a0a;
+  --red: #8b0000;
+  --cream: #f0e6d2;
+  --muted: #9a8a72;
+  --border: rgba(212,175,55,0.25);
+  --border-bright: rgba(212,175,55,0.6);
+
+  /* District colors */
+  --d1: #1a4a6e; --d1-glow: rgba(26,74,110,0.5);
+  --d2: #2e1a5e; --d2-glow: rgba(46,26,94,0.5);
+  --d3: #1a3d1a; --d3-glow: rgba(26,61,26,0.5);
+  --d4: #4a2a1a; --d4-glow: rgba(74,42,26,0.5);
+  --d5: #0a2a4a; --d5-glow: rgba(10,42,74,0.5);
+  --d6: #2a1a4a; --d6-glow: rgba(42,26,74,0.5);
+  --d7: #3d1a1a; --d7-glow: rgba(61,26,26,0.5);
+  --d8: #3d2a0a; --d8-glow: rgba(61,42,10,0.5);
+  --d9: #1a1a3d; --d9-glow: rgba(26,26,61,0.5);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--dark);
+  color: var(--cream);
+  font-family: 'Crimson Pro', Georgia, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+.site-header {
+  text-align: center;
+  padding: 28px 20px 20px;
+  background: linear-gradient(180deg, #050302 0%, transparent 100%);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.site-header h1 {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.6rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 40px rgba(212,175,55,0.4);
+}
+.site-header .subtitle {
+  font-size: 1rem;
+  color: var(--muted);
+  letter-spacing: 0.25em;
+  margin-top: 4px;
+  font-style: italic;
+  font-weight: 300;
+}
+.hint {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--gold-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── MAIN MAP SECTION ── */
+.map-section {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--border);
+  box-shadow: 0 0 60px rgba(0,0,0,0.8), 0 0 120px rgba(212,175,55,0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.map-wrapper img.city-map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── GROUP TRACKER ── */
+.group-tracker {
+  background: rgba(13,10,6,0.95);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.group-tracker h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+.group-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px 12px;
+}
+.group-badge {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 10px; font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.05em;
+  border: 2px solid rgba(255,255,255,0.15);
+}
+.group-name { flex: 1; font-size: 0.82rem; color: var(--cream); }
+.group-select {
+  background: var(--dark-mid);
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  padding: 4px 6px;
+  font-family: 'Crimson Pro', serif;
+  font-size: 0.78rem;
+  cursor: pointer;
+  max-width: 160px;
+}
+.group-select:focus { outline: 1px solid var(--gold); }
+
+/* ── GROUP MARKERS ON MAP ── */
+.group-marker {
+  position: absolute;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: none;
+  align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 10px; font-weight: 600;
+  cursor: default;
+  border: 2px solid rgba(255,255,255,0.4);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.8), 0 0 20px var(--glow, rgba(255,255,255,0.2));
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  transition: transform 0.2s ease;
+  pointer-events: none;
+  letter-spacing: 0.05em;
+}
+.group-marker:hover { transform: translate(-50%,-50%) scale(1.15); }
+
+/* ── DISTRICT OVERLAYS ── */
+.district-overlay {
+  position: absolute;
+  cursor: pointer;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 3px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.district-overlay:hover {
+  background: rgba(212,175,55,0.12);
+  border-color: rgba(212,175,55,0.5);
+}
+.district-overlay .d-label {
+  position: absolute;
+  bottom: 6px; left: 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: var(--gold);
+  background: rgba(13,10,6,0.85);
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+.district-overlay:hover .d-label { opacity: 1; }
+.district-overlay .d-num {
+  position: absolute;
+  top: 6px; left: 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 13px; font-weight: 600;
+  color: var(--gold);
+  background: rgba(13,10,6,0.8);
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--gold-dim);
+}
+
+/* ── DISTRICT PANEL ── */
+.district-panel {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px 20px;
+  display: none;
+}
+.district-panel.visible { display: block; }
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--dark-panel);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+}
+.panel-header-left h2 {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+}
+.panel-header-left .panel-sub {
+  font-size: 0.88rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 2px;
+}
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1px solid var(--border-bright);
+  color: var(--gold);
+  padding: 8px 18px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.back-btn:hover {
+  background: rgba(212,175,55,0.1);
+  box-shadow: 0 0 16px rgba(212,175,55,0.2);
+}
+.back-btn svg { width: 14px; height: 14px; }
+
+.panel-body {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 0 0 4px 4px;
+  overflow: hidden;
+  background: var(--dark-panel);
+}
+
+/* District map side */
+.district-map-wrap {
+  position: relative;
+  background: #050302;
+  border-right: 1px solid var(--border);
+}
+.district-map-wrap img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Legend side */
+.legend-panel {
+  background: var(--dark-panel);
+  overflow-y: auto;
+  max-height: 70vh;
+  padding: 0;
+}
+.legend-panel::-webkit-scrollbar { width: 4px; }
+.legend-panel::-webkit-scrollbar-track { background: var(--dark); }
+.legend-panel::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+.legend-section-head {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  padding: 12px 16px 6px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 16px;
+  border-bottom: 1px solid rgba(212,175,55,0.07);
+  cursor: default;
+  transition: background 0.15s;
+}
+.legend-item:hover { background: rgba(212,175,55,0.04); }
+
+.legend-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--dark-mid);
+  border: 1.5px solid var(--gold-dim);
+  color: var(--gold);
+  font-family: 'Cinzel', serif;
+  font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.legend-num.hq { border-color: #4a9e4a; color: #6ecb6e; }
+.legend-num.major { border-color: #4a7aae; color: #7aaee8; }
+.legend-num.minor { border-color: #6e6e6e; color: #a0a0a0; }
+.legend-num.shop { border-color: #ae8a4a; color: #d4a84a; }
+.legend-num.poi { border-color: #ae4a4a; color: #d47a7a; }
+.legend-num.frag { border-color: #c8a000; color: #f0c500; background: rgba(200,160,0,0.12); }
+.legend-num.camp { border-color: #8b4a00; color: #c87a30; }
+
+.legend-text { flex: 1; min-width: 0; }
+.legend-name {
+  font-size: 0.88rem;
+  color: var(--cream);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.legend-note {
+  font-size: 0.76rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 1px;
+  line-height: 1.3;
+}
+
+.legend-tag {
+  font-size: 0.62rem;
+  padding: 2px 5px;
+  border-radius: 2px;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+.tag-hq { background: rgba(74,158,74,0.15); color: #6ecb6e; border: 1px solid rgba(74,158,74,0.3); }
+.tag-frag { background: rgba(200,160,0,0.15); color: #f0c500; border: 1px solid rgba(200,160,0,0.3); }
+.tag-camp { background: rgba(139,74,0,0.2); color: #c87a30; border: 1px solid rgba(139,74,0,0.3); }
+
+/* Legend type key */
+.legend-key {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.key-item { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: var(--muted); }
+.key-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid; }
+.key-dot.hq { border-color: #4a9e4a; }
+.key-dot.major { border-color: #4a7aae; }
+.key-dot.minor { border-color: #6e6e6e; }
+.key-dot.shop { border-color: #ae8a4a; }
+.key-dot.poi { border-color: #ae4a4a; }
+.key-dot.frag { border-color: #c8a000; background: rgba(200,160,0,0.12); }
+
+/* ── GM MODE STYLES ── */
+.gm-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(13,10,6,0.8);
+  border: 1px solid var(--gold-dim);
+  color: var(--muted);
+  padding: 8px 16px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.25s ease;
+}
+.gm-toggle-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(212,175,55,0.08);
+}
+.gm-toggle-btn.gm-active {
+  background: rgba(139,0,0,0.25);
+  border-color: #cc4444;
+  color: #ff8888;
+  box-shadow: 0 0 20px rgba(139,0,0,0.3);
+}
+.gm-toggle-btn.gm-active:hover {
+  background: rgba(139,0,0,0.4);
+}
+.gm-icon { font-size: 14px; }
+
+/* GM secret controls bar */
+.gm-secret-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(139,0,0,0.12);
+  border-bottom: 1px solid rgba(139,0,0,0.3);
+}
+.gm-ctrl-label {
+  font-size: 0.72rem;
+  color: #cc8888;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.08em;
+  flex: 1;
+}
+.gm-ctrl-btn {
+  background: rgba(139,0,0,0.2);
+  border: 1px solid rgba(204,68,68,0.4);
+  color: #cc8888;
+  padding: 4px 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.gm-ctrl-btn:hover {
+  background: rgba(139,0,0,0.4);
+  border-color: #cc4444;
+  color: #ff9999;
+}
+
+/* Secret items */
+.legend-item.secret-item {
+  border-left: 2px solid rgba(204,68,68,0.35);
+  background: rgba(100,0,0,0.06);
+}
+.legend-item.secret-hidden {
+  opacity: 0.45;
+  font-style: italic;
+}
+.legend-num.secret {
+  border-color: #cc4444;
+  color: #ff8888;
+  background: rgba(139,0,0,0.2);
+}
+.key-dot.secret { border-color: #cc4444; background: rgba(139,0,0,0.2); }
+.tag-secret {
+  background: rgba(139,0,0,0.25);
+  color: #ff8888;
+  border: 1px solid rgba(204,68,68,0.4);
+}
+.secret-redacted {
+  color: #884444;
+  font-style: italic;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+.secret-toggle-btn {
+  background: none;
+  border: 1px solid rgba(204,68,68,0.3);
+  border-radius: 3px;
+  padding: 3px 7px;
+  cursor: pointer;
+  font-size: 13px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  align-self: center;
+}
+.secret-toggle-btn:hover {
+  background: rgba(139,0,0,0.2);
+  border-color: #cc4444;
+}
+@media (max-width: 900px) {
+  .panel-body { grid-template-columns: 1fr; }
+  .district-map-wrap { border-right: none; border-bottom: 1px solid var(--border); }
+  .legend-panel { max-height: 50vh; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Aethermoor</h1>
+  <div class="subtitle">The Domed City — Electoral Campaign Map</div>
+  <div class="hint">Click a district to explore · Track faction positions below</div>
+  <button class="gm-toggle-btn" id="gmToggleBtn" onclick="toggleGmMode()">
+    <span class="gm-icon">🔒</span>
+    <span class="gm-label">GM Mode: OFF</span>
+  </button>
+</header>
+
+<!-- GROUP TRACKER -->
+<div class="map-section" style="padding-bottom:0">
+  <div class="group-tracker">
+    <h2>⚑ Faction Location Tracker</h2>
+    <div class="group-grid">
+      <div class="group-row">
+        <div class="group-badge" style="background:#0055aa;--glow:rgba(0,85,170,0.6)">RO</div>
+        <span class="group-name">Re-Reclaimer Online</span>
+        <select class="group-select" id="g-ro" onchange="updateGroups()">
+          <option value="">— Not deployed —</option>
+          <option value="8" selected>D8: Tenement Rows</option>
+          <option value="1">D1: Aetherworks</option>
+          <option value="2">D2: Underlines</option>
+          <option value="3">D3: Scriptorium</option>
+          <option value="4">D4: Fog Belt</option>
+          <option value="5">D5: Craneyard</option>
+          <option value="6">D6: Thorn-Parliament</option>
+          <option value="7">D7: Ironward</option>
+          <option value="9">D9: Crown Heights</option>
+        </select>
+      </div>
+      <div class="group-row">
+        <div class="group-badge" style="background:#003d88;--glow:rgba(0,61,136,0.6)">RF</div>
+        <span class="group-name">Re-Reclaimer Offline</span>
+        <select class="group-select" id="g-rf" onchange="updateGroups()">
+          <option value="">— Not deployed —</option>
+          <option value="8" selected>D8: Tenement Rows</option>
+          <option value="1">D1: Aetherworks</option>
+          <option value="2">D2: Underlines</option>
+          <option value="3">D3: Scriptorium</option>
+          <option value="4">D4: Fog Belt</option>
+          <option value="5">D5: Craneyard</option>
+          <option value="6">D6: Thorn-Parliament</option>
+          <option value="7">D7: Ironward</option>
+          <option value="9">D9: Crown Heights</option>
+        </select>
+      </div>
+      <div class="group-row">
+        <div class="group-badge" style="background:#aa1111;--glow:rgba(170,17,17,0.6)">BI</div>
+        <span class="group-name">Bahamut Industries</span>
+        <select class="group-select" id="g-bi" onchange="updateGroups()">
+          <option value="" selected>— Not deployed —</option>
+          <option value="1">D1: Aetherworks</option>
+          <option value="2">D2: Underlines</option>
+          <option value="3">D3: Scriptorium</option>
+          <option value="4">D4: Fog Belt</option>
+          <option value="5">D5: Craneyard</option>
+          <option value="6">D6: Thorn-Parliament</option>
+          <option value="7">D7: Ironward</option>
+          <option value="8">D8: Tenement Rows</option>
+          <option value="9">D9: Crown Heights</option>
+        </select>
+      </div>
+      <div class="group-row">
+        <div class="group-badge" style="background:#117711;--glow:rgba(17,119,17,0.6)">DC</div>
+        <span class="group-name">The Dome Compact</span>
+        <select class="group-select" id="g-dc" onchange="updateGroups()">
+          <option value="" selected>— Not deployed —</option>
+          <option value="1">D1: Aetherworks</option>
+          <option value="2">D2: Underlines</option>
+          <option value="3">D3: Scriptorium</option>
+          <option value="4">D4: Fog Belt</option>
+          <option value="5">D5: Craneyard</option>
+          <option value="6">D6: Thorn-Parliament</option>
+          <option value="7">D7: Ironward</option>
+          <option value="8">D8: Tenement Rows</option>
+          <option value="9">D9: Crown Heights</option>
+        </select>
+      </div>
+      <div class="group-row">
+        <div class="group-badge" style="background:#cc5500;--glow:rgba(204,85,0,0.6)">ES</div>
+        <span class="group-name">Environmental Syndicate</span>
+        <select class="group-select" id="g-es" onchange="updateGroups()">
+          <option value="" selected>— Not deployed —</option>
+          <option value="1">D1: Aetherworks</option>
+          <option value="2">D2: Underlines</option>
+          <option value="3">D3: Scriptorium</option>
+          <option value="4">D4: Fog Belt</option>
+          <option value="5">D5: Craneyard</option>
+          <option value="6">D6: Thorn-Parliament</option>
+          <option value="7">D7: Ironward</option>
+          <option value="8">D8: Tenement Rows</option>
+          <option value="9">D9: Crown Heights</option>
+        </select>
+      </div>
+      <div class="group-row">
+        <div class="group-badge" style="background:#7722aa;--glow:rgba(119,34,170,0.6)">EC</div>
+        <span class="group-name">Equity Convergence</span>
+        <select class="group-select" id="g-ec" onchange="updateGroups()">
+          <option value="" selected>— Not deployed —</option>
+          <option value="1">D1: Aetherworks</option>
+          <option value="2">D2: Underlines</option>
+          <option value="3">D3: Scriptorium</option>
+          <option value="4">D4: Fog Belt</option>
+          <option value="5">D5: Craneyard</option>
+          <option value="6">D6: Thorn-Parliament</option>
+          <option value="7">D7: Ironward</option>
+          <option value="8">D8: Tenement Rows</option>
+          <option value="9">D9: Crown Heights</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CITY MAP -->
+<div class="map-section" style="padding-top:0">
+  <div class="map-wrapper" id="cityMapWrapper">
+    <img src="aethermoor_map.png" class="city-map" alt="Aethermoor City Map" id="cityMapImg">
+
+    <!-- District overlays — calibrated to the new labeled city map -->
+    <!-- D1: Aetherworks Quarter — left/center, orange autumn trees + steampunk -->
+    <div class="district-overlay" id="dov-1" style="top:25%;left:17%;width:22%;height:26%;" onclick="openDistrict(1)">
+      <div class="d-num">1</div>
+      <div class="d-label">Aetherworks Quarter</div>
+    </div>
+    <!-- D2: Underlines — bottom center, transit grid visible -->
+    <div class="district-overlay" id="dov-2" style="top:68%;left:38%;width:22%;height:18%;" onclick="openDistrict(2)">
+      <div class="d-num">2</div>
+      <div class="d-label">The Underlines</div>
+    </div>
+    <!-- D3: Scriptorium — upper right, gothic buildings -->
+    <div class="district-overlay" id="dov-3" style="top:18%;left:65%;width:22%;height:22%;" onclick="openDistrict(3)">
+      <div class="d-num">3</div>
+      <div class="d-label">Scriptorium District</div>
+    </div>
+    <!-- D4: Fog Belt — right side, dark smoky industrial -->
+    <div class="district-overlay" id="dov-4" style="top:38%;left:72%;width:22%;height:26%;" onclick="openDistrict(4)">
+      <div class="d-num">4</div>
+      <div class="d-label">The Fog Belt</div>
+    </div>
+    <!-- D5: Craneyard — lower right, docks and cranes -->
+    <div class="district-overlay" id="dov-5" style="top:55%;left:63%;width:24%;height:22%;" onclick="openDistrict(5)">
+      <div class="d-num">5</div>
+      <div class="d-label">The Craneyard</div>
+    </div>
+    <!-- D6: Thorn Parliament — left side, fey forest -->
+    <div class="district-overlay" id="dov-6" style="top:40%;left:8%;width:18%;height:24%;" onclick="openDistrict(6)">
+      <div class="d-num">6</div>
+      <div class="d-label">Thorn-Parliament</div>
+    </div>
+    <!-- D7: Ironward (Pump Warrens label on map) — lower left, mechanical -->
+    <div class="district-overlay" id="dov-7" style="top:60%;left:10%;width:20%;height:22%;" onclick="openDistrict(7)">
+      <div class="d-num">7</div>
+      <div class="d-label">The Ironward</div>
+    </div>
+    <!-- D8: Tenement Rows — center, dense residential -->
+    <div class="district-overlay" id="dov-8" style="top:40%;left:40%;width:18%;height:22%;" onclick="openDistrict(8)">
+      <div class="d-num">8</div>
+      <div class="d-label">Tenement Rows</div>
+    </div>
+    <!-- D9: Crown Heights — upper center, tall crystal spire -->
+    <div class="district-overlay" id="dov-9" style="top:12%;left:38%;width:20%;height:22%;" onclick="openDistrict(9)">
+      <div class="d-num">9</div>
+      <div class="d-label">Crown Heights</div>
+    </div>
+
+    <!-- Group markers (positioned dynamically) -->
+    <div class="group-marker" id="gm-ro" style="background:#0055aa;--glow:rgba(0,85,170,0.6)">RO</div>
+    <div class="group-marker" id="gm-rf" style="background:#003d88;--glow:rgba(0,61,136,0.6)">RF</div>
+    <div class="group-marker" id="gm-bi" style="background:#aa1111;--glow:rgba(170,17,17,0.6)">BI</div>
+    <div class="group-marker" id="gm-dc" style="background:#117711;--glow:rgba(17,119,17,0.6)">DC</div>
+    <div class="group-marker" id="gm-es" style="background:#cc5500;--glow:rgba(204,85,0,0.6)">ES</div>
+    <div class="group-marker" id="gm-ec" style="background:#7722aa;--glow:rgba(119,34,170,0.6)">EC</div>
+  </div>
+</div>
+
+<!-- DISTRICT PANEL -->
+<div class="district-panel" id="districtPanel">
+  <div class="panel-header">
+    <div class="panel-header-left">
+      <h2 id="panelTitle">District Name</h2>
+      <div class="panel-sub" id="panelSub">Theme tagline</div>
+    </div>
+    <button class="back-btn" onclick="closeDistrict()">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 2L4 7l5 5"/>
+      </svg>
+      Return to City Map
+    </button>
+  </div>
+
+  <div class="panel-body">
+    <div class="district-map-wrap">
+      <img id="districtMapImg" src="" alt="District Map">
+    </div>
+    <div class="legend-panel" id="legendPanel">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DISTRICT DATA ──────────────────────────────────────────────────────────
+const DISTRICTS = {
+  1: {
+    name: "The Aetherworks Quarter",
+    sub: "Industrial factories · Fantasy 1930s Chicago · Cooling towers & warding pylons",
+    img: "District1.png",
+    sections: [
+      { head: "Faction Headquarters", type: "faction", items: [
+        { n:1, type:"hq", name:"The Coolant Crown / Steam Hall", note:"UET HQ — converted turbine wing, Plant 7" },
+        { n:2, type:"hq", name:"The Maker's Lodge / Brass Collegiate", note:"Artificers' Compact HQ" },
+        { n:3, type:"major", name:"The Ironward Shift Office (satellite)", note:"Veterans' Relief Legion — Major Presence" },
+        { n:4, type:"minor", name:"The Sump Station", note:"Sanitation & Tunneling — Minor Presence, below-grade" },
+      ]},
+      { head: "Shops", type: "shop", items: [
+        { n:5, type:"shop", name:"The Iron Ration", note:"Workers' canteen (Marta Stoveheart)" },
+        { n:6, type:"shop", name:"Hightension's Hardware", note:"Industrial supplies (Bolt Hightension)" },
+        { n:7, type:"shop", name:"The Grease Pit", note:"Tavern (Torren Coalhand)" },
+        { n:8, type:"shop", name:"Sparkwright's Sundries", note:"General goods (Lyssa Sparkwright)" },
+        { n:9, type:"shop", name:"The Precision Shop", note:"Custom fabrication (Aldric Threadcount)" },
+      ]},
+      { head: "Points of Interest", type: "poi", items: [
+        { n:10, type:"poi", name:"Plant 7 Main Reactor", note:"UET stronghold, restricted access" },
+        { n:11, type:"poi", name:"The Restricted Wing", note:"Unauthorized manufacturing, coolant anomalies" },
+        { n:12, type:"poi", name:"Third Catwalk Junction", note:"Between-building shortcuts, worker social space" },
+        { n:13, type:"poi", name:"Cooling Tower 12", note:"Emergency shutdown protocols, sabotage risk" },
+        { n:14, type:"frag", name:"Underworks Maintenance Access", note:"Cold Loop Map fragment · Connects to D2 tunnels", tags:["FRAGMENT"] },
+        { n:15, type:"poi", name:"The Source Tree", note:"Before Plant 7 existed, this area was a fey crossing grove. The tree should have died from coolant runoff, smoke, and construction — instead it grew larger. Its roots now run beneath the reactor complex.", tags:["GM SECRET"] },
+      ]},
+    ]
+  },
+  2: {
+    name: "The Underlines",
+    sub: "Underground transit network · Multi-level isometric — surface plaza over ghost lines",
+    img: "District2.png",
+    sections: [
+      { head: "Faction Headquarters", items: [
+        { n:1, type:"hq", name:"Switchyard Nine / Signal House", note:"Transit Syndicate HQ — Platform Level -3" },
+        { n:2, type:"hq", name:"Pumpstation Grief & Glory", note:"Sanitation & Tunneling HQ — below-grade junction" },
+        { n:3, type:"major", name:"The Freight Junction", note:"GUILD 77 — Major Presence" },
+        { n:4, type:"minor", name:"Gate Control Post", note:"PSD — Minor Presence, surface-to-underground entry" },
+      ]},
+      { head: "Shops", items: [
+        { n:5, type:"shop", name:"The Track Lantern", note:"Workers' café (Nessa Coalwick)" },
+        { n:6, type:"shop", name:"Ratchet's Repair Bay", note:"Track equipment (Ratchet Steelgrip)" },
+        { n:7, type:"shop", name:"The Tunnel Refuge", note:"Informal shelter (Elder Marin)" },
+        { n:8, type:"shop", name:"Grease & Gauge Supply", note:"Maintenance supplies (Torbin Oilcan)" },
+      ]},
+      { head: "Points of Interest", items: [
+        { n:9, type:"frag", name:"Platform 7-Shadow", note:"Sealed pre-coup platform · Off all maps", tags:["FRAGMENT","GM SECRET"] },
+        { n:10, type:"poi", name:"The Old Switching Yard", note:"Decommissioned hub, squatter community" },
+        { n:11, type:"poi", name:"Emergency Exit 7", note:"Connects to Ironward tunnels, known to few" },
+        { n:12, type:"poi", name:"Shadow Platform Night Market", note:"Informal, off-record trading" },
+        { n:13, type:"poi", name:"Ghost Line Maintenance Corridor", note:"No public map; Transit Syndicate only" },
+      ]},
+    ]
+  },
+  3: {
+    name: "The Scriptorium District",
+    sub: "Victorian learning & research · Gothic revival, gas lamps, iron fences",
+    img: "District3.png",
+    sections: [
+      { head: "Faction Headquarters", items: [
+        { n:1, type:"hq", name:"The Pedagogue's Hall / Open Ledger Library", note:"Educators' League HQ" },
+        { n:2, type:"hq", name:"Greenwood Reading Room / The Waystation", note:"Verdant Archive HQ — location rotates monthly" },
+        { n:3, type:"major", name:"Registry House Operational Annex", note:"Clerks' Collegium — Major Presence (political HQ → Crown Heights)" },
+        { n:4, type:"minor", name:"Unmarked Reading Alcove", note:"Maleficent Sovereignty — Minor Presence, sub-basement Old Registry" },
+      ]},
+      { head: "Shops", items: [
+        { n:5, type:"shop", name:"Novel Scenes", note:"Bookshop, banned book network (Miriam Spineleaf)" },
+        { n:6, type:"shop", name:"Fortune Alley", note:"Genuine divination (Madame Asteroth)" },
+        { n:7, type:"shop", name:"The Quill & Seal", note:"Scribe, translation, forgery (Aldus Inkwright)" },
+        { n:8, type:"shop", name:"The Lamplight Café", note:"Coffee, academic gossip (Jasper Roastwell)" },
+        { n:9, type:"shop", name:"The Bindery", note:"Book repair, hollowed spines (Thessa Goldleaf)" },
+      ]},
+      { head: "Points of Interest", items: [
+        { n:10, type:"poi", name:"The Grand Archive", note:"5-story library, restricted section" },
+        { n:11, type:"poi", name:"The Hall of Precedents", note:"Legal library, 200 years of decisions" },
+        { n:12, type:"poi", name:"The Quadrangle", note:"Central green, statue with removed head" },
+        { n:13, type:"poi", name:"The Black Room", note:"Sealed records vault, dome denial documents", tags:["GM SECRET"] },
+        { n:14, type:"frag", name:"Old Registry Sub-Basement", note:"Easement Chain fragment buried here · Yarah Finn missing", tags:["FRAGMENT","GM SECRET"] },
+        { n:15, type:"poi", name:"The Black Room", note:"Sealed records, alien agent hunting access" },
+        { n:16, type:"poi", name:"The Waystation (mobile)", note:"Verdant Archive rotates location monthly" },
+      ]},
+    ]
+  },
+  4: {
+    name: "The Fog Belt",
+    sub: "Poor residential, former industrial · Nephilim fog, clinic-orange lanterns",
+    img: "District4.png",
+    sections: [
+      { head: "Faction Headquarters", items: [
+        { n:1, type:"hq", name:"The Respite Clinic / Triage Atrium", note:"Medical Mutual HQ" },
+        { n:2, type:"hq", name:"Clean Water Station / Caskhouse Commons", note:"Growers & Distillers HQ" },
+        { n:3, type:"major", name:"Fogbound Community Hall", note:"Tenant Assemblies Council — Major Presence" },
+        { n:4, type:"minor", name:"The Scar Grove Warden Post", note:"Fey Community Board — Minor Presence, informal" },
+      ]},
+      { head: "Shops", items: [
+        { n:5, type:"shop", name:"Fog Lamp Emporium", note:"Specialised lamps (Flicker Brightspark)" },
+        { n:6, type:"shop", name:"Thickweave Tailor", note:"Fog-resistant clothing (Weave Dampwick)" },
+        { n:7, type:"shop", name:"The Healer's Respite", note:"Fog remedies (Moss Deeproot)" },
+        { n:8, type:"shop", name:"The Iron Lung", note:"Respiratory equipment (Brass Breath)" },
+        { n:9, type:"shop", name:"Warmth & Whiskey", note:"Tavern (Horace Fogborn)" },
+      ]},
+      { head: "Points of Interest", items: [
+        { n:10, type:"poi", name:"The Fog Wall", note:"Visible district boundary, dense fog demarcation" },
+        { n:11, type:"poi", name:"The Wellness Pod", note:"Brand tech franchise, data siphoning" },
+        { n:12, type:"poi", name:"The Shrouded Market", note:"Black market medicine and supplies" },
+        { n:13, type:"poi", name:"The Breathing Tower", note:"Community refuge during fog surges" },
+        { n:14, type:"frag", name:"The Scar Grove", note:"Liturgical Nodes · Twisted trees, planar scarring epicentre", tags:["FRAGMENT"] },
+      ]},
+    ]
+  },
+  5: {
+    name: "The Craneyard",
+    sub: "Docks & Moor River maritime · Open sky, crane forest, cargo stacks",
+    img: "District5.png",
+    sections: [
+      { head: "Faction Headquarters", items: [
+        { n:1, type:"hq", name:"The Longshoreman's Hall / Cranewatch House", note:"GUILD 77 HQ" },
+        { n:2, type:"hq", name:"The Freight Exchange / Ledger Lantern Market Hall", note:"Bazaar Guild HQ" },
+        { n:3, type:"major", name:"Rail-Dock Transfer Station", note:"Transit Syndicate — Major Presence" },
+        { n:4, type:"minor", name:"Dockside Technical Certification Post", note:"Artificers' Compact — Minor Presence" },
+      ]},
+      { head: "Shops", items: [
+        { n:5, type:"shop", name:"Kingscoin Galleon", note:"Ship supplies, armour (Daron Grelser)" },
+        { n:6, type:"shop", name:"The Salted Barrel", note:"Preserved foods (Gilda Brinebottom)" },
+        { n:7, type:"shop", name:"The Rope Walk", note:"Cordage, netting (Twist Cordwright)" },
+        { n:8, type:"shop", name:"The Dockers' Rest", note:"Tavern (Magda Foamstein)" },
+        { n:9, type:"shop", name:"The Harbor Light", note:"Lighthouse, navigation (Beacon Flameheart)" },
+      ]},
+      { head: "Points of Interest", items: [
+        { n:10, type:"poi", name:"The Portcullis Gates", note:"View to outside, heavily guarded river entry" },
+        { n:11, type:"poi", name:"The Auction Block", note:"Daily cargo auctions, rumour hub" },
+        { n:12, type:"frag", name:"Warehouse 7", note:"Shadow Platform (manifest) · Container warm to the touch, arrived 3 days pre-coup", tags:["FRAGMENT","GM SECRET"] },
+        { n:13, type:"poi", name:"The Crane Forest", note:"40 massive cranes — defining visual feature" },
+        { n:14, type:"poi", name:"The Barge Basin", note:"Protected dock, rumoured underwater passages" },
+        { n:15, type:"poi", name:"The Barge Basin (lower)", note:"Suspected underwater passage access" },
+      ]},
+    ]
+  },
+  6: {
+    name: "The Thorn-Parliament",
+    sub: "Fey forests & ancient magical groves · Living architecture, amber moss, rite-paths",
+    img: "District6.png",
+    sections: [
+      { head: "Faction Headquarters", items: [
+        { n:1, type:"hq", name:"The Greenwood Parliament", note:"Fey Community Board HQ" },
+        { n:2, type:"hq", name:"The Briar Throne / Amber Refuge", note:"Maleficent Sovereignty HQ · Rite-path network entrance", tags:["GM SECRET"] },
+        { n:3, type:"major", name:"Shrine of Old Gods", note:"Temple Custodians' Circle — Major Presence" },
+        { n:4, type:"minor", name:"Research Cell / Old Grove Reading Post", note:"Verdant Archive — Minor Presence, unmarked" },
+      ]},
+      { head: "Shops", items: [
+        { n:5, type:"shop", name:"The Living Apothecary", note:"Fey remedies (Petal Dewdrop)" },
+        { n:6, type:"shop", name:"Wandering Market", note:"Trickster merchant, moves location (Twist Tricklefoot)" },
+        { n:7, type:"shop", name:"Woodshaper's Workshop", note:"Grown furniture (Oak Heartwood)" },
+        { n:8, type:"shop", name:"Dew Drop Inn", note:"Time-dilated sleep (Bramblejack Thornberry)" },
+        { n:9, type:"shop", name:"Moonlit Armory", note:"Enchanted weapons (Sable Nightforge)" },
+      ]},
+      { head: "Points of Interest", items: [
+        { n:10, type:"poi", name:"The Deep Grove", note:"Ancient trees, fey courts — time unreliable, connects to other groves worldwide" },
+        { n:11, type:"poi", name:"The Moonpool", note:"Healing spring, reflects truth" },
+        { n:12, type:"poi", name:"The Whispering Bells", note:"Fey communication network, bell clusters in canopy" },
+        { n:13, type:"frag", name:"The Sealed Deed Grove", note:"Liturgical Nodes · Maleficent holds the key", tags:["FRAGMENT"] },
+        { n:14, type:"poi", name:"The Thorn Wall", note:"Living barrier marking Maleficent's territory" },
+      ]},
+    ]
+  },
+  7: {
+    name: "The Ironward",
+    sub: "Former & current military, middle-class residential · Converted barracks, working foundry",
+    img: "District7.png",
+    sections: [
+      { head: "Faction Headquarters", items: [
+        { n:1, type:"hq", name:"The Iron Precinct", note:"PSD HQ — converted regimental HQ, rooftop comms array" },
+        { n:2, type:"hq", name:"The Ribbonhall", note:"Veterans' Relief Legion HQ — converted officers' mess" },
+        { n:3, type:"major", name:"Ironward Grid Station", note:"UET — Major Presence" },
+        { n:4, type:"minor", name:"The Ironward Bureau", note:"Street Media Collective — Minor Presence, unmarked flat" },
+      ]},
+      { head: "Shops", items: [
+        { n:5, type:"shop", name:"The Foundry Arms", note:"Tavern, ex-PSD owner (Holt Brackenford)" },
+        { n:6, type:"shop", name:"Ironward Provisions", note:"Food & dry goods (Sable Grainwright)" },
+        { n:7, type:"shop", name:"The Ribbon & Buckle", note:"Tailor/uniforms (Fenn Threadwatch)" },
+        { n:8, type:"shop", name:"Corvus Metalworks", note:"Blacksmith (Mira Corvus)" },
+        { n:9, type:"shop", name:"Permit Office Annex", note:"PSD satellite civilian processing" },
+      ]},
+      { head: "Points of Interest — Surface", items: [
+        { n:10, type:"poi", name:"The Regimental Hall", note:"Converted barracks, community hall", tags:["GM SECRET"] },
+        { n:11, type:"poi", name:"The Ironward Foundry", note:"Working foundry, eastern edge — night shifts off-schedule" },
+        { n:12, type:"poi", name:"Veterans' Memorial Walk", note:"Three controversial post-coup additions" },
+      ]},
+      { head: "Tunnels Beneath the Ironward", items: [
+        { n:13, type:"frag", name:"Junction 7-C", note:"Cold Loop Map · Coolant shadow loop feeds MagnoWorks", tags:["FRAGMENT","GM SECRET"] },
+        { n:14, type:"poi", name:"The Deep Cistern", note:"Independent aquifer — only non-PSD water source" },
+        { n:15, type:"poi", name:"The Collapse Memorial", note:"Sealed section, three crew deaths" },
+        { n:16, type:"poi", name:"The Echo Chamber", note:"Acoustic anomaly, carries surface conversations" },
+        { n:17, type:"poi", name:"The Forgotten Levels", note:"Pre-city ruins, 3 Condemned passages hide BI equipment", tags:["GM SECRET"] },
+        { n:18, type:"shop", name:"Waterproof Workshop", note:"Diving equipment (Bilge Sealwright)" },
+        { n:19, type:"shop", name:"Rust & Hammer", note:"Underground tavern (Stone Deepmug)" },
+        { n:20, type:"shop", name:"The Tunnel Map", note:"Navigation service (Trace Pathfinder)" },
+      ]},
+    ]
+  },
+  8: {
+    name: "The Tenement Rows",
+    sub: "Dense residential slums · Fantasy 1800s London · Laundry canopy, election murals",
+    img: "District8.png",
+    sections: [
+      { head: "Faction Headquarters", items: [
+        { n:1, type:"hq", name:"Tenement Hall of Many Keys", note:"Tenant Assemblies HQ · Keyholder Roster in sub-basement vault", tags:["FRAGMENT"] },
+        { n:2, type:"hq", name:"The Signal Nest / Rooftop Relay", note:"Street Media HQ — top-floor apartment, illegal transmitter" },
+        { n:3, type:"major", name:"The Rows Supply Depot", note:"Growers & Distillers — Major Presence, Merchant's Way" },
+        { n:4, type:"minor", name:"Stall Keepers' Union Hall", note:"Bazaar Guild — Minor Presence, Merchant's Way" },
+      ]},
+      { head: "Shops", items: [
+        { n:5, type:"shop", name:"Threadwear & Mending", note:"Tailor (Seela Patchwork)" },
+        { n:6, type:"shop", name:"The Copper Kettle", note:"Apothecary (Brother Thistledown)" },
+        { n:7, type:"shop", name:"The Daily Loaf Bakery", note:"Fresh bread, Merchant's Way (Grimm Coalstone)" },
+        { n:8, type:"shop", name:"Marik's Metalworks", note:"Blacksmith (Marik Ironheart)" },
+        { n:9, type:"shop", name:"The Borrowed Page", note:"Bookshop / scribe / forgery (Quill Inkwell)" },
+      ]},
+      { head: "Points of Interest", items: [
+        { n:10, type:"camp", name:"The Crossline Inn", note:"Campaign HQ · Two bars: Coppergate Common + Ash-Bend Rest, secret passages", tags:["CAMPAIGN HQ"] },
+        { n:11, type:"poi", name:"The People's Archive", note:"Community library, 17 languages — 3-story converted warehouse" },
+        { n:12, type:"poi", name:"The Corner Scriptorium", note:"Legal texts, members-only — partial Easement Chain copy" },
+        { n:13, type:"poi", name:"The Laundry Lines Plaza", note:"Community hub, 5 buildings at irregular angles" },
+        { n:14, type:"poi", name:"Night Market Alley", note:"Illegal after-curfew market, 3-min evac drill" },
+        { n:15, type:"poi", name:"The Stairwell of Seven Landings", note:"8-story external stairway, district lookout point" },
+        { n:16, type:"poi", name:"The Muralista's Wall", note:"Living political artwork — entire 6-story building facade" },
+        { n:17, type:"poi", name:"The Ratrun Underpasses", note:"Basement network connecting buildings across district" },
+      ]},
+    ]
+  },
+  9: {
+    name: "Crown Heights",
+    sub: "Civic authority & formal government core · Wide boulevards, CCC banners, Bahamut tower standing dark",
+    img: "District9.png",
+    sections: [
+      { head: "Faction Headquarters", items: [
+        { n:1, type:"hq", name:"The Grand Shrine / Lantern Basilica Annex", note:"Temple Custodians' Circle HQ" },
+        { n:2, type:"hq", name:"The Registry House", note:"Clerks' Collegium HQ — dome-era government document processing" },
+        { n:3, type:"major", name:"Civic Archive & Institutional Library", note:"Educators' League — Major Presence" },
+        { n:4, type:"minor", name:"Civic Market Stall Cluster", note:"Bazaar Guild — Minor Presence, plaza approach" },
+      ]},
+      { head: "Shops", items: [
+        { n:5, type:"shop", name:"Glossvale Bank", note:"Banking (Renata Patsiavos)" },
+        { n:6, type:"shop", name:"Novel Scenes (Crown Heights)", note:"Rare books (Quill Silverleaf)" },
+        { n:7, type:"shop", name:"Urrasmaw Court", note:"Court clerk services (Penny Merryweather)" },
+        { n:8, type:"shop", name:"The Crown Café", note:"Backroom deal venue (Marijke Ossa)" },
+        { n:9, type:"shop", name:"Monument Gallery", note:"Art dealing (Aldus Framegilt)" },
+      ]},
+      { head: "Points of Interest", items: [
+        { n:10, type:"poi", name:"The Broadcast Tower", note:"Senna Truthframe trapped day 11, 4th floor", tags:["FRAGMENT","GM SECRET"] },
+        { n:11, type:"poi", name:"Veterans' Memorial Wall", note:"Contested recent additions naming coup-era officers" },
+        { n:12, type:"poi", name:"The Courthouse", note:"Sympathetic judges, legal resistance work" },
+        { n:13, type:"poi", name:"The Continuity Office", note:"CCC administrative centre, Director Varr's satellite office" },
+        { n:14, type:"poi", name:"The Courthouse Annex", note:"Legal aid, resistance document processing" },
+        { n:15, type:"poi", name:"Central Plaza", note:"Daily PSD briefing point, surveillance heavy" },
+        { n:16, type:"poi", name:"Veterans' Memorial Walk", note:"Contested post-coup additions" },
+        { n:17, type:"camp", name:"Bahamut Industries Tower", note:"Lobby sealed, upper floors dark — largest building, north edge", tags:["GM SECRET"] },
+      ]},
+    ]
+  },
+};
+
+// ── GROUP POSITIONS (% of map) ─────────────────────────────────────────────
+const DISTRICT_CENTERS = {
+  1: { top:38, left:28 },  // Aetherworks — left/center
+  2: { top:77, left:49 },  // Underlines — bottom center
+  3: { top:29, left:76 },  // Scriptorium — upper right
+  4: { top:51, left:83 },  // Fog Belt — right side
+  5: { top:66, left:75 },  // Craneyard — lower right
+  6: { top:52, left:17 },  // Thorn Parliament — left
+  7: { top:71, left:20 },  // Ironward — lower left
+  8: { top:51, left:49 },  // Tenement Rows — center
+  9: { top:23, left:48 },  // Crown Heights — upper center
+};
+
+const GROUPS = ['ro','rf','bi','dc','es','ec'];
+
+function updateGroups() {
+  const inDistrict = {};
+  GROUPS.forEach(g => {
+    const val = document.getElementById(`g-${g}`).value;
+    if (val) {
+      if (!inDistrict[val]) inDistrict[val] = [];
+      inDistrict[val].push(g);
+    }
+    document.getElementById(`gm-${g}`).style.display = 'none';
+  });
+
+  Object.entries(inDistrict).forEach(([d, groups]) => {
+    const center = DISTRICT_CENTERS[d];
+    if (!center) return;
+    const total = groups.length;
+    groups.forEach((g, i) => {
+      const marker = document.getElementById(`gm-${g}`);
+      let top = center.top, left = center.left;
+      if (total > 1) {
+        const angle = (i / total) * 2 * Math.PI - Math.PI / 2;
+        top  += Math.sin(angle) * 3.5;
+        left += Math.cos(angle) * 3.5;
+      }
+      marker.style.top  = top  + '%';
+      marker.style.left = left + '%';
+      marker.style.display = 'flex';
+    });
+  });
+}
+
+// ── GM MODE ───────────────────────────────────────────────────────────────
+// gmMode: false = player view (secrets hidden)
+// gmMode: true  = GM view (secrets visible, each secret individually toggleable)
+// secretOverrides: { "D1-n14": true/false } — per-item override when gmMode is on
+
+let gmMode = false;
+const secretOverrides = {};   // key = "D{distNum}-n{itemN}", value = bool (shown=true)
+
+function isSecret(item) {
+  return (item.tags || []).includes('GM SECRET');
+}
+
+function secretKey(distNum, item) {
+  return `D${distNum}-n${item.n}`;
+}
+
+function isSecretVisible(distNum, item) {
+  if (!isSecret(item)) return true;           // not a secret — always show
+  if (!gmMode) return false;                  // player view — always hide
+  const key = secretKey(distNum, item);
+  // If GM has individually toggled this item, respect that; otherwise default to shown
+  return key in secretOverrides ? secretOverrides[key] : true;
+}
+
+function toggleGmMode() {
+  gmMode = !gmMode;
+  const btn = document.getElementById('gmToggleBtn');
+  btn.classList.toggle('gm-active', gmMode);
+  btn.querySelector('.gm-label').textContent = gmMode ? 'GM Mode: ON' : 'GM Mode: OFF';
+  // Rebuild legend for current district if open
+  if (currentDistrict) buildLegend(currentDistrict);
+}
+
+function handleSecretToggle(btn) {
+  const num = parseInt(btn.dataset.dist);
+  const n   = parseInt(btn.dataset.n);
+  const tags = JSON.parse(btn.dataset.tags);
+  toggleSecret(num, { n, tags });
+}
+
+function toggleSecret(distNum, item) {
+  const key = secretKey(distNum, item);
+  // Default visible when gmMode first turned on; toggling hides
+  const current = key in secretOverrides ? secretOverrides[key] : true;
+  secretOverrides[key] = !current;
+  buildLegend(distNum);   // re-render
+}
+
+function showAllSecrets(distNum) {
+  const d = DISTRICTS[distNum];
+  d.sections.forEach(sec => sec.items.forEach(item => {
+    if (isSecret(item)) secretOverrides[secretKey(distNum, item)] = true;
+  }));
+  buildLegend(distNum);
+}
+
+function hideAllSecrets(distNum) {
+  const d = DISTRICTS[distNum];
+  d.sections.forEach(sec => sec.items.forEach(item => {
+    if (isSecret(item)) secretOverrides[secretKey(distNum, item)] = false;
+  }));
+  buildLegend(distNum);
+}
+
+// ── OPEN DISTRICT ─────────────────────────────────────────────────────────
+let currentDistrict = null;
+
+function openDistrict(num) {
+  currentDistrict = num;
+  const d = DISTRICTS[num];
+  document.getElementById('panelTitle').textContent = `D${num}: ${d.name}`;
+  document.getElementById('panelSub').textContent = d.sub;
+  document.getElementById('districtMapImg').src = d.img;
+  document.getElementById('districtMapImg').alt = `Map of ${d.name}`;
+  buildLegend(num);
+  const panel = document.getElementById('districtPanel');
+  panel.classList.add('visible');
+  setTimeout(() => panel.scrollIntoView({ behavior:'smooth', block:'start' }), 50);
+}
+
+function buildLegend(num) {
+  const d = DISTRICTS[num];
+  const legend = document.getElementById('legendPanel');
+  legend.innerHTML = '';
+
+  // ── Key row ──
+  const key = document.createElement('div');
+  key.className = 'legend-key';
+  key.innerHTML = `
+    <span class="key-item"><span class="key-dot hq"></span>HQ</span>
+    <span class="key-item"><span class="key-dot major"></span>Major</span>
+    <span class="key-item"><span class="key-dot minor"></span>Minor</span>
+    <span class="key-item"><span class="key-dot shop"></span>Shop</span>
+    <span class="key-item"><span class="key-dot poi"></span>POI</span>
+    <span class="key-item"><span class="key-dot frag"></span>Fragment</span>
+    ${gmMode ? '<span class="key-item"><span class="key-dot secret"></span>Secret</span>' : ''}
+  `;
+  legend.appendChild(key);
+
+  // ── GM secret controls (when GM mode on) ──
+  if (gmMode) {
+    const ctrl = document.createElement('div');
+    ctrl.className = 'gm-secret-controls';
+    ctrl.innerHTML = `
+      <span class="gm-ctrl-label">🔐 GM Secrets:</span>
+      <button class="gm-ctrl-btn" onclick="showAllSecrets(${num})">Show All</button>
+      <button class="gm-ctrl-btn" onclick="hideAllSecrets(${num})">Hide All</button>
+    `;
+    legend.appendChild(ctrl);
+  }
+
+  // ── Sections ──
+  d.sections.forEach(sec => {
+    // Check if this section has any visible items
+    const visibleItems = sec.items.filter(item => isSecretVisible(num, item));
+    // If ALL items in section are secrets and all hidden, skip the heading too
+    const allSecrets = sec.items.every(item => isSecret(item));
+    if (allSecrets && visibleItems.length === 0) return;
+
+    const head = document.createElement('div');
+    head.className = 'legend-section-head';
+    head.textContent = sec.head;
+    legend.appendChild(head);
+
+    sec.items.forEach(item => {
+      const visible = isSecretVisible(num, item);
+      const secret = isSecret(item);
+
+      // In player mode, skip secrets entirely
+      if (secret && !gmMode) return;
+
+      const row = document.createElement('div');
+      const hiddenByGm = secret && gmMode && !visible;
+      row.className = 'legend-item' + (secret ? ' secret-item' : '') + (hiddenByGm ? ' secret-hidden' : '');
+
+      const numClass = item.type === 'camp' ? 'poi' : (secret && gmMode ? 'secret' : item.type);
+
+      const visibleTags = (item.tags || []).filter(t => t !== 'GM SECRET');
+      const tagsHtml = visibleTags.map(t => {
+        const cls = t === 'FRAGMENT' ? 'tag-frag' : t === 'CAMPAIGN HQ' ? 'tag-camp' : 'tag-hq';
+        return `<span class="legend-tag ${cls}">${t}</span>`;
+      }).join('');
+
+      const secretBadge = secret && gmMode
+        ? `<span class="legend-tag tag-secret">GM SECRET</span>`
+        : '';
+
+      const toggleBtn = secret && gmMode
+        ? `<button class="secret-toggle-btn" data-dist="${num}" data-n="${item.n}" data-tags='${JSON.stringify(item.tags||[])}' onclick="handleSecretToggle(this)" title="${visible ? 'Hide from players' : 'Show to players'}">
+             ${visible ? '👁' : '🚫'}
+           </button>`
+        : '';
+
+      const nameDisplay = hiddenByGm
+        ? `<span class="secret-redacted">[ HIDDEN FROM PLAYERS ]</span>`
+        : `${item.name}${tagsHtml}${secretBadge}`;
+
+      const noteDisplay = hiddenByGm ? '' : (item.note ? `<div class="legend-note">${item.note}</div>` : '');
+
+      row.innerHTML = `
+        <div class="legend-num ${numClass}">${hiddenByGm ? '?' : item.n}</div>
+        <div class="legend-text">
+          <div class="legend-name">${nameDisplay}</div>
+          ${noteDisplay}
+        </div>
+        ${toggleBtn}
+      `;
+      legend.appendChild(row);
+    });
+  });
+}
+
+function closeDistrict() {
+  document.getElementById('districtPanel').classList.remove('visible');
+  currentDistrict = null;
+  // Scroll back to map
+  document.getElementById('cityMapWrapper').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Init on load
+updateGroups();
+</script>
+</body>
+</html>
