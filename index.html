@@ -515,6 +515,8 @@ body {
   <h1>Aethermoor</h1>
   <div class="subtitle">The Domed City — Electoral Campaign Map</div>
   <div class="hint">Click a district to explore · Track faction positions below</div>
+  <button onclick="checkImages()" style="position:absolute;bottom:8px;right:24px;background:none;border:1px solid rgba(212,175,55,0.3);color:rgba(212,175,55,0.5);padding:4px 10px;font-size:10px;cursor:pointer;border-radius:2px;letter-spacing:0.1em;">CHECK IMAGES</button>
+  <div id="diagPanel" style="display:none;position:fixed;top:60px;right:20px;z-index:999;background:rgba(13,10,6,0.95);border:1px solid rgba(212,175,55,0.3);padding:12px 16px;border-radius:4px;max-height:300px;overflow-y:auto;"></div>
   <button class="gm-toggle-btn" id="gmToggleBtn" onclick="toggleGmMode()">
     <span class="gm-icon">🔒</span>
     <span class="gm-label">GM Mode: OFF</span>
@@ -721,35 +723,34 @@ const DISTRICTS = {
     sub: "Industrial factories · Fantasy 1930s Chicago · Cooling towers & warding pylons",
     img: "District1.png",
     sections: [
-      { head: "Faction Headquarters", type: "faction", items: [
-        { n:1, type:"hq", name:"The Coolant Crown", note:"UET HQ · Key NPCs: Chief Steward Ressa Kline (union politician), Jax 'Sparkwrench' Noll (foreman), Maelin Quench (inspector)" },
-        { n:2, type:"hq", name:"The Brass Collegiate", note:"Artificers' Compact HQ · Key NPCs: Master Ketta Spline (craft elder), 'Midge' (fabricator), Designer Ulto Crane (design lead)" },
-        { n:3, type:"major", name:"The Ironward Shift Office (satellite)", note:"Veterans' Relief Legion — Major Presence · Sgt.-at-Arms Dava coordinates veteran employment on the industrial floor" },
+      { head: "Faction Headquarters", items: [
+        { n:1, type:"hq", name:"The Coolant Crown", note:"UET HQ · Ressa Kline (union politician), Jax 'Sparkwrench' Noll (foreman), Maelin Quench (inspector)" },
+        { n:2, type:"hq", name:"The Brass Collegiate", note:"Artificers' Compact HQ · Master Ketta Spline (craft elder), 'Midge' (fabricator), Designer Ulto Crane" },
+        { n:3, type:"minor", name:"The Ironward Shift Office (satellite)", note:"Veterans' Relief Legion — Major Presence · Sgt.-at-Arms Dava coordinates veteran employment here" },
         { n:4, type:"minor", name:"The Sump Station", note:"Sanitation & Tunneling — Minor Presence, below-grade" },
       ]},
       { head: "Shops", items: [
-        { n:5, type:"shop", name:"The Old Ironmill / Gearspire Annex", note:"Tinkering hub, commissions, custom components (Orax Voltwynd) — NPLH p.158" },
+        { n:5, type:"shop", name:"The Old Ironmill / Gearspire Annex", note:"Tinkering hub, commissions (Orax Voltwynd) — NPLH p.158" },
         { n:6, type:"shop", name:"Blazehammer Smithy", note:"Mephit-powered forge, weapons & metalwork (Fabriz Feumain) — NPLH p.158" },
-        { n:7, type:"shop", name:"The Iron Ration", note:"Workers' canteen (Marta Stoveheart)" },
         { n:8, type:"shop", name:"Hightension's Hardware", note:"Industrial supplies, black market components (Bolt Hightension)" },
         { n:9, type:"shop", name:"The Grease Pit", note:"Off-shift tavern, union organizing (Torren Coalhand)" },
       ]},
       { head: "Points of Interest", items: [
-        { n:10, type:"poi", name:"Azure Park — Ether Gardens", note:"Silver Lining dead-drop; messages hidden in flower arrangements (Growers & Distillers maintained) — NPLH p.54" },
-        { n:11, type:"poi", name:"The Source Tree", note:"Before Plant 7 existed, this area was a fey crossing grove. The tree should have died — instead it grew larger. Its roots run beneath the reactor complex.", tags:["GM SECRET"] },
+        { n:10, type:"poi", name:"Azure Park — Ether Gardens", note:"Silver Lining dead-drop; messages hidden in flower arrangements — NPLH p.54" },
+        { n:11, type:"poi", name:"The Source Tree", note:"Before Plant 7 existed, this was a fey crossing grove. Should have died — instead it grew larger. Roots run beneath the reactor complex.", tags:["GM SECRET"] },
       ]},
     ]
   },
   2: {
     name: "The Underlines",
-    sub: "Underground transit network · Multi-level isometric — surface plaza over ghost lines",
+    sub: "Underground transit network · Multi-level — surface plaza over ghost lines",
     img: "District2.png",
     sections: [
       { head: "Faction Headquarters", items: [
-        { n:1, type:"hq", name:"Switchyard Nine / Signal House", note:"Transit Syndicate HQ — Switchyard Nine · Dispatcher Ko (dispatch lead), Linewalker Pira Soot, 'Uncle' Merrow" },
-        { n:2, type:"hq", name:"Pumpstation Grief & Glory", note:"Sanitation & Tunneling HQ — Pumpstation Grief & Glory · Chief Diver Osa Brine (dive chief), Chalkwright Fen, Rescuer 'Mop' Tellen" },
-        { n:3, type:"major", name:"The Freight Junction", note:"GUILD 77 — Major Presence" },
-        { n:4, type:"minor", name:"Gate Control Post", note:"PSD — Minor Presence, surface-to-underground entry" },
+        { n:1, type:"hq", name:"Switchyard Nine / Signal House", note:"Transit Syndicate HQ · Dispatcher Ko (dispatch lead), Linewalker Pira Soot, 'Uncle' Merrow" },
+        { n:2, type:"hq", name:"Pumpstation Grief & Glory", note:"Sanitation & Tunneling HQ · Chief Diver Osa Brine (dive chief), Chalkwright Fen, Rescuer 'Mop' Tellen" },
+        { n:3, type:"major", name:"The Freight Junction", note:"GUILD 77 — Major Presence · Yard Boss Kessa Hookchain" },
+        { n:4, type:"minor", name:"Gate Control Post", note:"PSD — Minor Presence, surface-to-underground entry · Gate Officer Cress Halvern" },
       ]},
       { head: "Shops", items: [
         { n:5, type:"shop", name:"The Cracked Lantern", note:"After-hours alehouse, Silver Lining contacts (Nana Kanata) — NPLH p.129" },
@@ -769,26 +770,20 @@ const DISTRICTS = {
     img: "District3.png",
     sections: [
       { head: "Faction Headquarters", items: [
-        { n:1, type:"hq", name:"The Pedagogue's Hall / Open Ledger Library", note:"Educators' League HQ — Open Ledger Library · Head Librarian Maude Senn, Teacher-Organizer Leni Kest, Student Liaison Pax" },
-        { n:2, type:"hq", name:"Greenwood Reading Room / The Waystation", note:"Verdant Archive HQ — The Waystation (rotates monthly) · Archivist Brell (last keeper), Rider-Sworn Sela, Apprentice Tak" },
-        { n:3, type:"major", name:"Registry House Operational Annex", note:"Clerks' Collegium — Major Presence (political HQ → Crown Heights)" },
-        { n:4, type:"minor", name:"Unmarked Reading Alcove", note:"Maleficent Sovereignty — Minor Presence, sub-basement Old Registry" },
+        { n:2, type:"hq", name:"The Waystation", note:"Verdant Archive HQ (location rotates monthly) · Archivist Brell (last keeper), Rider-Sworn Sela, Apprentice Tak" },
+        { n:3, type:"hq", name:"Open Ledger Library", note:"Educators' League HQ · Head Librarian Maude Senn, Teacher-Organizer Leni Kest, Student Liaison Pax" },
+        { n:4, type:"major", name:"Registry House Operational Annex", note:"Clerks' Collegium — Major Presence (political HQ relocated to Crown Heights D9)" },
+        { n:7, type:"minor", name:"Scriptorium Research Buildings", note:"Maleficent Sovereignty — Minor Presence (Scholar-Warden Deva Thornmist, sub-basement alcove)" },
       ]},
       { head: "Shops", items: [
         { n:5, type:"shop", name:"Novel Scenes Bookshop", note:"Illusion-books, banned texts, message network (Antimon Harpweather) — NPLH p.152" },
         { n:6, type:"shop", name:"Fortune Alley", note:"Seers and diviners, coded bell language (Maury Miller) — NPLH p.153" },
-        { n:7, type:"shop", name:"Sprakkonda Centre", note:"Languages hall, translation, pre-coup notation research (Kimri Godsblade) — NPLH p.178" },
         { n:8, type:"shop", name:"The Quill & Seal", note:"Scribe services, discreet forgery (Aldus Inkwright)" },
         { n:9, type:"shop", name:"The Lamplight Café", note:"Coffee and academic gossip (Jasper Roastwell)" },
       ]},
       { head: "Points of Interest", items: [
-        { n:10, type:"poi", name:"The Grand Archive", note:"Five-story civic library, 200 years of legal decisions, PSD-controlled restricted section since coup" },
-        { n:11, type:"frag", name:"Old Registry Sub-Basement", note:"Easement Chain buried here · Yarah Finn stopped coming to work two weeks ago · PSD asked colleagues not to log absence", tags:["FRAGMENT","GM SECRET"] },
-        
-        
-        
-        
-        
+        { n:2, type:"poi", name:"Sprakkonda Centre (The Waystation building)", note:"Languages hall, translation, pre-coup notation research (Kimri Godsblade) — NPLH p.178. The Waystation portal is visible on its rooftop." },
+        { n:9, type:"frag", name:"Old Registry Sub-Basement", note:"Easement Chain buried here · Yarah Finn stopped coming to work two weeks ago · PSD asked colleagues not to log the absence", tags:["FRAGMENT","GM SECRET"] },
       ]},
     ]
   },
@@ -798,24 +793,20 @@ const DISTRICTS = {
     img: "District4.png",
     sections: [
       { head: "Faction Headquarters", items: [
-        { n:1, type:"hq", name:"The Respite Clinic / Triage Atrium", note:"Medical Mutual HQ — The Triage Atrium · Dr. Sera Mott (lead physician), Paramedic Dain Lark, Odrin Vale" },
-        { n:2, type:"hq", name:"Clean Water Station / Caskhouse Commons", note:"Growers & Distillers HQ — The Caskhouse Commons · Rika 'Juniper' (brewer), Waterwright Thalen Reed, Quartermaster Nox" },
-        { n:3, type:"major", name:"Fogbound Community Hall", note:"Tenant Assemblies Council — Major Presence" },
-        { n:4, type:"minor", name:"The Scar Grove Warden Post", note:"Fey Community Board — Minor Presence, informal" },
+        { n:1, type:"hq", name:"The Triage Atrium", note:"Medical Mutual HQ · Dr. Sera Mott (lead physician), Paramedic Dain Lark, Odrin Vale" },
+        { n:2, type:"hq", name:"The Caskhouse Commons", note:"Growers & Distillers HQ · Rika 'Juniper' (brewer), Waterwright Thalen Reed, Quartermaster Nox" },
+        { n:3, type:"major", name:"Fogbound Community Hall", note:"Tenant Assemblies Council — Major Presence · Block Captain Merra Graymantle" },
+        { n:4, type:"minor", name:"The Scar Grove Warden Post", note:"Fey Community Board — Minor Presence · Pathwarden Cael (Fey, Calm/Watchful)" },
       ]},
       { head: "Shops", items: [
-        { n:5, type:"shop", name:"Fog Lamp Emporium", note:"Specialised lamps (Flicker Brightspark)" },
-        { n:6, type:"shop", name:"Thickweave Tailor", note:"Fog-resistant clothing (Weave Dampwick)" },
-        { n:7, type:"shop", name:"The Healer's Respite", note:"Fog remedies (Moss Deeproot)" },
-        { n:8, type:"shop", name:"The Iron Lung", note:"Respiratory equipment (Brass Breath)" },
-        { n:9, type:"shop", name:"Warmth & Whiskey", note:"Tavern (Horace Fogborn)" },
+        { n:5, type:"shop", name:"Elderbough Sanctuary", note:"Druidic healing centre, fog remedies (Doctor Gojko Babic) — NPLH p.169" },
+        { n:6, type:"shop", name:"Fog Lamp Emporium", note:"Specialised fog-condition lamps (Flicker Brightspark)" },
+        { n:7, type:"shop", name:"Thickweave Tailor", note:"Fog-resistant clothing (Weave Dampwick)" },
+        { n:9, type:"shop", name:"Warmth & Whiskey", note:"Tavern; only warm dry room in the Belt that isn't a clinic (Horace Fogborn)" },
+        { n:10, type:"shop", name:"Viltanks Aquarium", note:"Fog-adapted aquatic life study; also sells fog remedies and aquarium supplies — NPLH p.142" },
       ]},
       { head: "Points of Interest", items: [
-        { n:10, type:"poi", name:"Viltanks Aquarium", note:"Fog-adapted aquatic life study. A young aboleth disappeared from containment — hiding in fog-pool drain, observing staff for 3 months — NPLH p.142" },
-        { n:11, type:"poi", name:"Glowburrow — Fog Belt Undercavern", note:"Bioluminescent fungi cave. Mushroomfolk have maintained fog-processing machinery for decades — they predate the district — NPLH p.72" },
-        
-        
-        
+        { n:11, type:"poi", name:"Glowburrow — Fog Belt Undercavern", note:"Bioluminescent fungi cave. Mushroomfolk have maintained fog-processing machinery here for decades — they predate the district above them. — NPLH p.72", tags:["GM SECRET"] },
       ]},
     ]
   },
@@ -825,25 +816,19 @@ const DISTRICTS = {
     img: "District5.png",
     sections: [
       { head: "Faction Headquarters", items: [
-        { n:1, type:"hq", name:"The Longshoreman's Hall / Cranewatch House", note:"GUILD 77 HQ — Cranewatch House · Dockboss Mara Quoin (dock boss), Lift-Signalman 'Tin' Ro, Manifest Runner Juno Pike" },
-        { n:2, type:"hq", name:"The Freight Exchange / Ledger Lantern Market Hall", note:"Bazaar Guild HQ — Ledger Lantern Market Hall · Guild Factor Yara Penn (factor), Stallmaster Jeb Coil, Runner Saff" },
-        { n:3, type:"major", name:"Rail-Dock Transfer Station", note:"Transit Syndicate — Major Presence" },
-        { n:4, type:"minor", name:"Dockside Technical Certification Post", note:"Artificers' Compact — Minor Presence" },
+        { n:1, type:"hq", name:"Cranewatch House", note:"GUILD 77 HQ · Dockboss Mara Quoin (dock boss), Lift-Signalman 'Tin' Ro, Manifest Runner Juno Pike" },
+        { n:2, type:"hq", name:"Ledger Lantern Market Hall", note:"Bazaar Guild HQ · Guild Factor Yara Penn (factor), Stallmaster Jeb Coil, Runner Saff" },
+        { n:4, type:"minor", name:"Dockside Technical Certification Post", note:"Artificers' Compact — Minor Presence · Inspector Crane Bolt. NOTE: Rail-Dock Transfer Station (Transit Syndicate Major Presence) is in this district but not individually marked." },
       ]},
       { head: "Shops", items: [
-        { n:5, type:"shop", name:"Kingscoin Galleon — Dockside Market", note:"60+ stall market galleon; one stall sells 'pre-coup archival replicas' that may be real originals (Daron Grelser) — NPLH p.172" },
-        { n:6, type:"shop", name:"Hitch & Ruts Workshop", note:"Freight enchantments, modified cargo; employees steal freight platforms at night disguised as GUILD 77 — NPLH p.159" },
-        { n:7, type:"shop", name:"The Waltzing Hippogriff", note:"Open-air bar, live music, resistance ballads; unofficial rallying point (Dennis Dreggs) — NPLH p.133" },
+        { n:5, type:"shop", name:"Kingscoin Galleon — Dockside Market", note:"60+ stall market galleon (Daron Grelser) — NPLH p.172" },
+        { n:6, type:"shop", name:"Hitch & Ruts Workshop", note:"Freight enchantments, modified cargo (Daron Grelser workshop) — NPLH p.159" },
+        { n:7, type:"shop", name:"The Waltzing Hippogriff", note:"Open-air bar, live music, resistance ballads (Dennis Dreggs) — NPLH p.133" },
         { n:8, type:"shop", name:"The Salted Barrel", note:"Preserved foods, dock workers' staple (Gilda Brinebottom)" },
-        { n:9, type:"shop", name:"The Dockers' Rest", note:"Tavern, only place GUILD 77 and Bazaar Guild workers drink together (Magda Foamstein)" },
+        { n:9, type:"shop", name:"The Dockers' Rest", note:"Tavern; GUILD 77 and Bazaar Guild workers drink together here (Magda Foamstein)" },
       ]},
       { head: "Points of Interest", items: [
-        { n:10, type:"frag", name:"Warehouse 7", note:"Sealed container, arrived 3 days pre-coup · Manifest: 'calibration equipment — Aetherworks Division' · No one at Aetherworks ordered it · Container is slightly warm to touch", tags:["FRAGMENT","GM SECRET"] },
-        
-        
-        
-        
-        
+        { n:10, type:"frag", name:"Warehouse 7", note:"Sealed container, arrived 3 days pre-coup · 'Calibration equipment — Aetherworks Division' · No one ordered it · Container is slightly warm to the touch", tags:["FRAGMENT","GM SECRET"] },
       ]},
     ]
   },
@@ -853,24 +838,19 @@ const DISTRICTS = {
     img: "District6.png",
     sections: [
       { head: "Faction Headquarters", items: [
-        { n:1, type:"hq", name:"The Greenwood Parliament", note:"Fey Community Board HQ — The Greenwood Parliament · Speaker Nuala Glassroot (diplomat), Warden Briar Pike (enforcer), Courier Moss" },
-        { n:2, type:"hq", name:"The Briar Throne / Amber Refuge", note:"Maleficent Sovereignty HQ — The Amber Refuge · Maleficent, High Warden Sereth Moonfall, Wing-Scout Dava · Rite-path network entrance", tags:["GM SECRET"] },
-        { n:3, type:"major", name:"Shrine of Old Gods", note:"Temple Custodians' Circle — Major Presence" },
-        { n:4, type:"minor", name:"Research Cell / Old Grove Reading Post", note:"Verdant Archive — Minor Presence, unmarked" },
+        { n:3, type:"hq", name:"The Greenwood Parliament", note:"Fey Community Board HQ · Speaker Nuala Glassroot (diplomat), Warden Briar Pike (enforcer), Courier Moss. NOTE: visible on map as the central stone structure." },
+        { n:8, type:"hq", name:"The Amber Refuge", note:"Maleficent Sovereignty HQ · Maleficent, High Warden Sereth Moonfall, Wing-Scout Dava · Rite-path network entrance. NOTE: the glowing tree-structure on the upper right." },
+        { n:3, type:"major", name:"Shrine of Old Gods", note:"Temple Custodians' Circle — Major Presence · Custodian Ren Softspoke (Virtuous/Mystical)" },
       ]},
       { head: "Shops", items: [
-        { n:5, type:"shop", name:"The Living Apothecary", note:"Fey remedies (Petal Dewdrop)" },
-        { n:6, type:"shop", name:"Wandering Market", note:"Trickster merchant, moves location (Twist Tricklefoot)" },
-        { n:7, type:"shop", name:"Woodshaper's Workshop", note:"Grown furniture (Oak Heartwood)" },
-        { n:8, type:"shop", name:"Dew Drop Inn", note:"Time-dilated sleep (Bramblejack Thornberry)" },
-        { n:9, type:"shop", name:"Moonlit Armory", note:"Enchanted weapons (Sable Nightforge)" },
+        { n:5, type:"shop", name:"The Living Apothecary", note:"Fey remedies, living poultices, bioluminescent medical supplies (Petal Dewdrop)" },
+        { n:6, type:"shop", name:"Wandering Market", note:"Trickster merchant, stall location changes daily (Twist Tricklefoot)" },
+        { n:7, type:"shop", name:"Woodshaper's Workshop", note:"Furniture and objects grown rather than built (Oak Heartwood)" },
       ]},
       { head: "Points of Interest", items: [
-        { n:10, type:"poi", name:"The Shrieker Garden — Rite-Path Corridor", note:"Restricted rite-paths. Someone has been dosing fog-blooms with a CCC compound amplifying reactions to non-fey presence — NPLH p.25 reskinned" },
+        { n:10, type:"poi", name:"The Shrieker Garden — Rite-Path Corridor", note:"Restricted rite-paths. CCC compound dosing the fog-blooms to amplify reactions to non-fey — NPLH p.25 reskinned" },
         { n:11, type:"poi", name:"Cottoncrawl", note:"Tiny fairy village in underground pipe system. Fey Community Board's informal courthouse — disputes settled away from PSD — NPLH p.118" },
-        { n:12, type:"poi", name:"Arbor Memorum — Remembrance Grove", note:"Memorial grove. Beneath one statue is a sealed vault installed by Temple Custodians' Circle before the coup — NPLH p.51 reskinned" },
-        
-        
+        { n:12, type:"frag", name:"Arbor Memorum — Remembrance Grove", note:"Memorial grove. Sealed vault beneath central statue, installed by Temple Custodians' Circle before the coup. Liturgical Nodes fragment.", tags:["FRAGMENT"] },
       ]},
     ]
   },
@@ -880,32 +860,22 @@ const DISTRICTS = {
     img: "District7.png",
     sections: [
       { head: "Faction Headquarters", items: [
-        { n:1, type:"hq", name:"The Iron Precinct", note:"PSD HQ — The Iron Precinct · Director Ilex Varr (CCC liaison), Commander Sela Durk (Doubter faction), Compliance Officer Renn" },
-        { n:2, type:"hq", name:"The Ribbonhall", note:"Veterans' Relief Legion HQ — The Ribbonhall · Capt. (ret.) Della Rusk (leader), Medic 'Patch' Orin, Sgt. Vale Crow" },
-        { n:3, type:"major", name:"Ironward Grid Station", note:"UET — Major Presence" },
-        { n:4, type:"minor", name:"The Ironward Bureau", note:"Street Media Collective — Minor Presence, unmarked flat" },
+        { n:1, type:"hq", name:"The Iron Precinct", note:"PSD HQ · Director Ilex Varr (CCC liaison, Methodical/Believer), Commander Sela Durk (Doubter faction, quietly copying records), Compliance Officer Renn (has read every file; said nothing yet)" },
+        { n:2, type:"hq", name:"The Ribbonhall", note:"Veterans' Relief Legion HQ · Capt. (ret.) Della Rusk (leader, considers coup a disgrace), Medic 'Patch' Orin (Warm/Careful), Sgt. Vale Crow (Conflicted, holdout voice)" },
+        { n:3, type:"major", name:"Ironward Grid Station", note:"UET — Major Presence · Lead Technician Spark Voltwright (can track unauthorized power draws)" },
+        { n:4, type:"minor", name:"The Ironward Bureau", note:"Street Media Collective — Minor Presence (unmarked flat, rotating address) · Field Correspondent Mael Greyink" },
       ]},
       { head: "Shops", items: [
-        { n:5, type:"shop", name:"The Foundry Arms", note:"Tavern, ex-PSD owner. First place veterans go to talk off-record (Holt Brackenford)" },
-        { n:6, type:"shop", name:"Ironward Provisions", note:"Food & dry goods (Sable Grainwright)" },
-        { n:7, type:"shop", name:"The Ribbon & Buckle", note:"Tailor/uniforms (Fenn Threadwatch)" },
-        { n:8, type:"shop", name:"Corvus Metalworks", note:"Blacksmith (Mira Corvus)" },
-        { n:9, type:"shop", name:"Permit Office Annex", note:"PSD satellite civilian processing" },
+        { n:5, type:"shop", name:"The Foundry Arms", note:"Tavern, ex-PSD owner; first place veterans go to talk off-record (Holt Brackenford)" },
+        { n:6, type:"shop", name:"Ironward Provisions", note:"Food & dry goods; Sable knows every family struggling (Sable Grainwright)" },
+        { n:7, type:"shop", name:"The Ribbon & Buckle", note:"Tailor/uniforms; can remove rank insignia without asking why (Fenn Threadwatch)" },
+        { n:8, type:"shop", name:"Corvus Metalworks", note:"Blacksmith; Mira is a Platinum Guard officer's daughter, quietly stockpiling (Mira Corvus)" },
+        { n:9, type:"shop", name:"Permit Office Annex", note:"PSD satellite civilian processing · Clerk Davan Hess (most honest person in the building, 3 months from retirement)" },
       ]},
-      { head: "Points of Interest — Surface", items: [
-        { n:10, type:"poi", name:"Cauldrons of Emrys — Geothermal Vents", note:"Geothermal cave network. Emrys' last vision: 'a dome of glass and forced silence.' — NPLH p.73" },
-        { n:11, type:"poi", name:"Glowburrow Extension — Deep Tunnels", note:"Bioluminescent fungi caves. Elder archive holds tunnel maps predating city records by 200 years. One map shows a chamber on no other document — NPLH p.72" },
-        { n:12, type:"poi", name:"The Regimental Hall", note:"Converted barracks / community hall. Sub-basement: intact pre-coup ops room. Maps show dome installation as military exercise: Operation Amber Seal. Documents dated 14 months before the coup.", tags:["GM SECRET"] },
-      ]},
-      { head: "Tunnels Beneath the Ironward", items: [
-        { n:13, type:"frag", name:"Junction 7-C", note:"Cold Loop Map · Coolant shadow loop feeds MagnoWorks", tags:["FRAGMENT","GM SECRET"] },
-        { n:14, type:"poi", name:"The Deep Cistern", note:"Independent aquifer — only non-PSD water source" },
-        { n:15, type:"poi", name:"The Collapse Memorial", note:"Sealed section, three crew deaths" },
-        { n:16, type:"poi", name:"The Echo Chamber", note:"Acoustic anomaly, carries surface conversations" },
-        { n:17, type:"poi", name:"The Forgotten Levels", note:"Pre-city ruins, 3 Condemned passages hide BI equipment", tags:["GM SECRET"] },
-        { n:18, type:"shop", name:"Waterproof Workshop", note:"Diving equipment (Bilge Sealwright)" },
-        { n:19, type:"shop", name:"Rust & Hammer", note:"Underground tavern (Stone Deepmug)" },
-        { n:20, type:"shop", name:"The Tunnel Map", note:"Navigation service (Trace Pathfinder)" },
+      { head: "Points of Interest", items: [
+        { n:10, type:"poi", name:"Cauldrons of Emrys / Glowburrow Access", note:"Geothermal vents + bioluminescent tunnel access. Emrys' last vision: 'a dome of glass and forced silence.' Elder tunnel maps here predate city records by 200 years. — NPLH p.73/72" },
+        { n:11, type:"poi", name:"Veterans' Memorial Walk", note:"Walkway with plaques; three controversial post-coup additions naming officers who died during the coup itself" },
+        { n:12, type:"poi", name:"The Regimental Hall", note:"Converted barracks / community hall. Sub-basement: intact pre-coup ops room. Maps show dome installation as Operation Amber Seal. Documents dated 14 months before the coup.", tags:["GM SECRET"] },
       ]},
     ]
   },
@@ -915,57 +885,46 @@ const DISTRICTS = {
     img: "District8.png",
     sections: [
       { head: "Faction Headquarters", items: [
-        { n:1, type:"hq", name:"Tenement Hall of Many Keys", note:"Tenant Assemblies HQ — Tenement Hall of Many Keys · Chair Marn Tallow (council chair), Block Captain Suri, Legal Aid Dox · Keyholder Roster in sub-basement vault", tags:["FRAGMENT"] },
-        { n:2, type:"hq", name:"The Signal Nest / Rooftop Relay", note:"Street Media HQ — The Rooftop Relay · Anchor Vee Sable (broadcast face), Cutter 'Glim' (editor), Runner Iro · Supporting: Kess Wiretap (signal tech)" },
-        { n:3, type:"major", name:"The Rows Supply Depot", note:"Growers & Distillers — Major Presence, Merchant's Way" },
-        { n:4, type:"minor", name:"Stall Keepers' Union Hall", note:"Bazaar Guild — Minor Presence, Merchant's Way" },
+        { n:1, type:"hq", name:"Tenement Hall of Many Keys", note:"Tenant Assemblies HQ · Chair Marn Tallow (council chair), Block Captain Suri, Legal Aid Dox · Keyholder Roster in sub-basement vault" },
+        { n:2, type:"hq", name:"The Rooftop Relay", note:"Street Media HQ · Anchor Vee Sable (broadcast face), Cutter 'Glim' (editor), Runner Iro · Supporting: Kess Wiretap (signal tech, paranoid, brilliant at signal routing)" },
+        { n:3, type:"major", name:"The Rows Supply Depot", note:"Growers & Distillers — Major Presence, Merchant's Way · Supply Coordinator Bram Caskwell" },
+        { n:4, type:"minor", name:"Stall Keepers' Union Hall", note:"Bazaar Guild — Minor Presence, Merchant's Way · Coordinator Vess Brightcoin (split loyalty between Rows community and Craneyard leadership)" },
       ]},
       { head: "Shops", items: [
         { n:5, type:"shop", name:"The Hearthstead — Community Hall", note:"'Civic education sessions' cover for block captain organizing (Nana Kanata) — NPLH p.163" },
-        { n:6, type:"shop", name:"Hopewell Hostel", note:"Charity inn, no questions asked. A resident has been quietly interviewing guests about pre-coup employment (Oren Heatherwood) — NPLH p.132" },
-        { n:7, type:"shop", name:"The Oxcart Exchange", note:"30+ stall market. Silver Lining signs in thieves' cant hidden throughout — some still being maintained — NPLH p.150" },
-        { n:8, type:"shop", name:"The Crossline Inn", note:"Campaign HQ · Coppergate Common (Table A) + Ash-Bend Rest (Table B) · St. Gregory LaTav (handler) · Secret passages to Ratrun network" },
+        { n:6, type:"shop", name:"Hopewell Hostel", note:"Charity inn, no questions asked; a resident has been quietly interviewing guests about pre-coup employment (Oren Heatherwood) — NPLH p.132" },
+        { n:7, type:"shop", name:"The Oxcart Exchange", note:"30+ stall market; Silver Lining signs in thieves' cant hidden throughout, some still maintained — NPLH p.150" },
+        { n:8, type:"shop", name:"The Crossline Inn", note:"Campaign HQ · Coppergate Common (Table A) + Ash-Bend Rest (Table B) · St. Gregory LaTav (handler) · Secret passages to Ratrun network", tags:["CAMPAIGN HQ"] },
         { n:9, type:"shop", name:"The Daily Loaf Bakery", note:"Fresh bread; opens before dawn; Grimm knows who's moving early (Grimm Coalstone)" },
       ]},
       { head: "Points of Interest", items: [
-        { n:10, type:"poi", name:"The People's Archive", note:"Community library in 17 languages. Pre-coup maps, expunged civic records, emergency shelter. Educators' League Minor Presence operates from 2nd floor." },
-        
-        
-        
-        
-        
-        
-        
+        { n:10, type:"poi", name:"The People's Archive", note:"Community library in 17 languages. Pre-coup maps, expunged civic records. Educators' League Minor Presence operates from 2nd floor." },
       ]},
     ]
   },
   9: {
     name: "Crown Heights",
-    sub: "Civic authority & formal government core · Wide boulevards, CCC banners, Bahamut tower standing dark",
+    sub: "Civic authority & formal government core · Wide boulevards, CCC banners, Bahamut tower dark",
     img: "District9.png",
     sections: [
       { head: "Faction Headquarters", items: [
-        { n:1, type:"hq", name:"The Grand Shrine / Lantern Basilica Annex", note:"Temple Custodians' Circle HQ — Lantern Basilica Annex · Archivist-Matron Selka Wren (records & relic chains), Brother Varrin Oathtallow, Curator Ilex Thorn" },
-        { n:2, type:"hq", name:"The Registry House", note:"Clerks' Collegium HQ — The Registry House (Crown Heights) · Registrar Hollen Vex, Auditor Nima Pell, Page-Savant Lio" },
-        { n:3, type:"major", name:"Civic Archive & Institutional Library", note:"Educators' League — Major Presence" },
-        { n:4, type:"minor", name:"Civic Market Stall Cluster", note:"Bazaar Guild — Minor Presence, plaza approach" },
+        { n:1, type:"hq", name:"Lantern Basilica Annex", note:"Temple Custodians' Circle HQ · Archivist-Matron Selka Wren (records & relic chains), Brother Varrin Oathtallow, Curator Ilex Thorn" },
+        { n:2, type:"hq", name:"The Registry House", note:"Clerks' Collegium HQ · Registrar Hollen Vex (Precise/Cautious — processed Bahamut tower sealing order; remembers what it said), Auditor Nima Pell, Page-Savant Lio" },
+        { n:3, type:"major", name:"Civic Archive & Institutional Library", note:"Educators' League — Major Presence · Head Archivist Dena Scrollwright (knows more about who meets whom in Crown Heights than the PSD post does)" },
+        { n:4, type:"minor", name:"Civic Market Stall Cluster", note:"Bazaar Guild — Minor Presence, plaza approach · Stall Liaison Joss Coppermark (hears more at her stall than most hear in a week of meetings)" },
       ]},
       { head: "Shops", items: [
         { n:5, type:"shop", name:"Glossvale Bank", note:"Ancient bank; basement vault has sealed pre-coup procurement ledgers (Renata Patsiavos) — NPLH p.162" },
         { n:6, type:"shop", name:"Urrasmaw Court — Clerk Services", note:"Photographic-memory clerk who knows filed anomalies weren't anomalies (Penny Merryweather) — NPLH p.162" },
-        { n:7, type:"shop", name:"The Crown Café", note:"Backroom deals; bartender's notebook is the most dangerous doc in the building (Marijke Ossa) — NPLH p.134" },
-        { n:8, type:"shop", name:"Novel Scenes (Crown Heights branch)", note:"Rare books, restricted civic texts, legal precedent (Quill Silverleaf)" },
-        { n:9, type:"shop", name:"Monument Gallery", note:"Art dealing; Aldus has handled 3 pieces he suspects never should have left certain vaults (Aldus Framegilt)" },
+        { n:7, type:"shop", name:"The Crown Café", note:"Backroom deals; bartender's notebook is the most dangerous document in the building (Marijke Ossa) — NPLH p.134" },
+        { n:8, type:"shop", name:"Novel Scenes (Crown Heights)", note:"Rare books, restricted civic texts, legal precedent (Quill Silverleaf)" },
+        { n:9, type:"shop", name:"Monument Gallery", note:"Art dealing; Aldus handled 3 pieces he suspects never should have left certain vaults (Aldus Framegilt)" },
       ]},
       { head: "Points of Interest", items: [
         { n:10, type:"poi", name:"Urrasmaw Court", note:"Civic courthouse, zone-of-truth pillars. CCC quietly replacing sympathetic judges — 3 remain — NPLH p.162" },
-        { n:11, type:"poi", name:"Hall of the Bold", note:"Former stronghold, resistance contact point. Where Re-Reclaimer candidates register and receive Continuity Writs. St. Gregory LaTav keeps the keys — NPLH p.162" },
+        { n:11, type:"poi", name:"Hall of the Bold", note:"Former stronghold, resistance contact point. Re-Reclaimer candidates register and receive Continuity Writs here. St. Gregory LaTav keeps the keys — NPLH p.162" },
         { n:12, type:"frag", name:"The Broadcast Tower", note:"SMC archivist trapped inside — day 11. Found the Compliance Burn Log backup. Needs food, a way out, and a plan.", tags:["FRAGMENT","GM SECRET"] },
-        { n:13, type:"poi", name:"Bahamut Industries Tower", note:"Lobby sealed, upper floors dark. Registrar Hollen Vex processed the sealing order and remembers what it said.", tags:["GM SECRET"] },
-        
-        
-        
-        
+        { n:13, type:"poi", name:"Bahamut Industries Tower", note:"Lobby sealed, upper floors dark. Largest building in Crown Heights. Registrar Vex processed the sealing order and remembers what it said.", tags:["GM SECRET"] },
       ]},
     ]
   },
@@ -1197,6 +1156,26 @@ function closeDistrict() {
 
 // Init on load
 updateGroups();
+
+// ── IMAGE DIAGNOSTICS ──────────────────────────────────────────────────────
+function checkImages() {
+  const files = [
+    'aethermoor_map.png',
+    'District1.png','District2.png','District3.png',
+    'District4.png','District5.png','District6.png',
+    'District7.png','District8.png','District9.png'
+  ];
+  const panel = document.getElementById('diagPanel');
+  panel.innerHTML = '<strong style="font-family:monospace;font-size:12px;">Image Load Check:</strong><br>';
+  files.forEach(f => {
+    const img = new Image();
+    img.onload  = () => { panel.innerHTML += `<span style="color:#4CAF50;font-family:monospace;font-size:11px;">✓ ${f}</span><br>`; };
+    img.onerror = () => { panel.innerHTML += `<span style="color:#f44336;font-family:monospace;font-size:11px;">✗ ${f} — NOT FOUND</span><br>`; };
+    img.src = f;
+  });
+  panel.style.display = 'block';
+}
+
 </script>
 </body>
 </html>
