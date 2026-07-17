@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eclipse: Second Dawn — Rules Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#060912;
+    --deep:#0b1122;
+    --panel:#111a30;
+    --panel-2:#16223c;
+    --line:#22314f;
+    --line-soft:#1a2740;
+    --ink:#e9eefb;
+    --muted:#8695b4;
+    --faint:#5d6b8a;
+    --cyan:#54d7ec;
+    --cyan-dim:#2a8fa3;
+    --mil:#e8467e;   /* Military */
+    --grid:#4aa3e6;  /* Grid */
+    --nano:#84cf52;  /* Nano */
+    --rare:#a6b2c9;  /* Rare */
+    --gold:#f2b53b;
+    --radius:4px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:'IBM Plex Sans',system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(84,215,236,.08), transparent 60%),
+      radial-gradient(900px 500px at 10% 10%, rgba(232,70,126,.06), transparent 55%),
+      var(--void);
+    color:var(--ink);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* ---------- Header ---------- */
+  header.hero{
+    position:relative;
+    padding:56px 0 30px;
+    border-bottom:1px solid var(--line);
+    overflow:hidden;
+  }
+  .hexfield{
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(30deg, transparent 47%, rgba(84,215,236,.05) 48%, rgba(84,215,236,.05) 52%, transparent 53%),
+      linear-gradient(-30deg, transparent 47%, rgba(84,215,236,.04) 48%, rgba(84,215,236,.04) 52%, transparent 53%);
+    background-size:44px 76px;
+    opacity:.6;
+    pointer-events:none;
+    mask-image:linear-gradient(to bottom, black, transparent);
+  }
+  .eyebrow{
+    font-family:'Chakra Petch';
+    letter-spacing:.5em;
+    text-transform:uppercase;
+    font-size:.7rem;
+    color:var(--cyan);
+    margin:0 0 14px;
+    position:relative;
+  }
+  h1.title{
+    font-family:'Chakra Petch';
+    font-weight:700;
+    font-size:clamp(2.3rem,6vw,4rem);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    margin:0;
+    line-height:.98;
+    position:relative;
+  }
+  h1.title .bar{color:var(--cyan)}
+  .subtitle{
+    font-family:'Chakra Petch';
+    font-weight:500;
+    letter-spacing:.32em;
+    text-transform:uppercase;
+    font-size:.8rem;
+    color:var(--muted);
+    margin:14px 0 0;
+    position:relative;
+  }
+  .lede{
+    max-width:60ch;margin:22px 0 0;color:var(--muted);position:relative;font-size:.98rem;
+  }
+
+  /* ---------- Search ---------- */
+  .searchbar{
+    position:sticky;top:0;z-index:50;
+    background:linear-gradient(to bottom, var(--void) 70%, transparent);
+    padding:16px 0 14px;
+    backdrop-filter:blur(6px);
+  }
+  .search-inner{position:relative}
+  #search{
+    width:100%;
+    font-family:'Chakra Petch';
+    font-size:1rem;
+    letter-spacing:.04em;
+    color:var(--ink);
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:15px 48px 15px 46px;
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  #search:focus{border-color:var(--cyan-dim);box-shadow:0 0 0 3px rgba(84,215,236,.12)}
+  #search::placeholder{color:var(--faint)}
+  .search-icon{
+    position:absolute;left:16px;top:50%;transform:translateY(-50%);
+    width:18px;height:18px;fill:none;stroke:var(--cyan);stroke-width:2;
+  }
+  .clear-btn{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    background:none;border:none;color:var(--faint);cursor:pointer;
+    font-size:1.4rem;line-height:1;padding:4px;display:none;
+  }
+  .clear-btn:hover{color:var(--ink)}
+  .search-meta{
+    font-family:'Chakra Petch';font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--faint);margin-top:8px;min-height:1em;
+  }
+
+  /* ---------- Section nav ---------- */
+  nav.jump{
+    display:flex;flex-wrap:wrap;gap:8px;padding:6px 0 26px;
+  }
+  nav.jump a{
+    font-family:'Chakra Petch';font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);text-decoration:none;
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:7px 12px;transition:.15s;
+  }
+  nav.jump a:hover{color:var(--ink);border-color:var(--cyan-dim);background:var(--panel)}
+
+  /* ---------- Sections ---------- */
+  section{padding:14px 0 10px;scroll-margin-top:90px}
+  .sec-head{
+    display:flex;align-items:baseline;gap:14px;margin:26px 0 4px;
+  }
+  .sec-num{
+    font-family:'Chakra Petch';font-weight:700;font-size:.8rem;letter-spacing:.1em;
+    color:var(--cyan);
+    border:1px solid var(--cyan-dim);border-radius:var(--radius);
+    padding:3px 9px;flex:none;
+  }
+  .sec-head h2{
+    font-family:'Chakra Petch';font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+    font-size:1.15rem;margin:0;
+  }
+  .sec-desc{color:var(--faint);font-size:.9rem;margin:2px 0 18px 0}
+
+  /* ---------- Cards ---------- */
+  .grid{display:grid;gap:12px}
+  .grid.two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .grid.three{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--deep));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    position:relative;
+  }
+  .card h3{
+    font-family:'Chakra Petch';font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    font-size:.92rem;margin:0 0 8px;display:flex;align-items:center;gap:9px;
+  }
+  .card p{margin:0 0 8px;font-size:.9rem;color:var(--muted)}
+  .card p:last-child{margin-bottom:0}
+  .card strong{color:var(--ink);font-weight:600}
+  .card em{color:var(--cyan);font-style:normal}
+  .tag{
+    font-family:'Chakra Petch';font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+    padding:3px 7px;border-radius:3px;flex:none;
+  }
+  .glyph{
+    width:26px;height:26px;flex:none;border-radius:3px;
+    display:grid;place-items:center;
+    font-family:'Chakra Petch';font-weight:700;font-size:.8rem;
+    border:1px solid var(--line);color:var(--void);
+  }
+
+  /* action activation pips */
+  .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .pip{
+    font-family:'Chakra Petch';font-size:.6rem;letter-spacing:.08em;
+    color:var(--muted);border:1px solid var(--line-soft);border-radius:3px;
+    padding:3px 7px;
+  }
+  .pip b{color:var(--cyan);font-weight:700}
+
+  /* ---------- Step list ---------- */
+  ol.steps{list-style:none;counter-reset:s;margin:0;padding:0}
+  ol.steps li{
+    counter-increment:s;position:relative;padding:12px 0 12px 44px;
+    border-bottom:1px solid var(--line-soft);font-size:.92rem;color:var(--muted);
+  }
+  ol.steps li:last-child{border-bottom:none}
+  ol.steps li::before{
+    content:counter(s,decimal-leading-zero);
+    position:absolute;left:0;top:11px;
+    font-family:'Chakra Petch';font-weight:700;font-size:.8rem;color:var(--cyan);
+    border:1px solid var(--cyan-dim);border-radius:3px;padding:2px 6px;
+  }
+  ol.steps li b{color:var(--ink)}
+  ol.steps li em{color:var(--cyan);font-style:normal}
+
+  /* ---------- FAQ ---------- */
+  .faq details{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    margin-bottom:10px;overflow:hidden;
+  }
+  .faq summary{
+    cursor:pointer;padding:14px 44px 14px 16px;position:relative;
+    font-family:'Chakra Petch';font-weight:500;letter-spacing:.02em;font-size:.92rem;
+    list-style:none;color:var(--ink);
+  }
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{
+    content:'+';position:absolute;right:16px;top:50%;transform:translateY(-50%);
+    font-family:'Chakra Petch';font-size:1.3rem;color:var(--cyan);transition:.2s;
+  }
+  .faq details[open] summary::after{transform:translateY(-50%) rotate(45deg)}
+  .faq summary:hover{background:var(--panel-2)}
+  .faq .ans{padding:0 16px 16px;color:var(--muted);font-size:.9rem;border-top:1px solid var(--line-soft)}
+  .faq .ans p{margin:12px 0 0}
+  .faq .ans strong{color:var(--ink)}
+  .faq .ans em{color:var(--cyan);font-style:normal}
+
+  /* ---------- Callout ---------- */
+  .callout{
+    border-left:3px solid var(--gold);
+    background:rgba(242,181,59,.06);
+    padding:12px 16px;border-radius:0 var(--radius) var(--radius) 0;
+    font-size:.88rem;color:var(--muted);margin-top:12px;
+  }
+  .callout b{color:var(--gold);font-family:'Chakra Petch';letter-spacing:.06em;text-transform:uppercase;font-size:.75rem}
+  .callout.draco{border-left-color:var(--cyan);background:rgba(84,215,236,.06)}
+  .callout.draco b{color:var(--cyan)}
+
+  /* ---------- Formula strip ---------- */
+  .formula{
+    display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+    background:var(--void);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px;margin:4px 0 16px;font-family:'Chakra Petch';font-size:1.05rem;letter-spacing:.02em;
+  }
+  .formula .box{border:1px solid var(--line);border-radius:3px;padding:6px 12px;color:var(--ink)}
+  .formula .op{color:var(--faint)}
+  .formula .hit{color:var(--nano);border-color:var(--nano)}
+  .formula .comp{color:var(--grid);border-color:var(--grid)}
+  .formula .shield{color:var(--mil);border-color:var(--mil)}
+
+  /* ---------- Tech tables ---------- */
+  .techcols{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .techcol{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .techcol .th{
+    font-family:'Chakra Petch';font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:.8rem;
+    padding:11px 14px;color:var(--void);
+  }
+  .techcol.mil .th{background:var(--mil)}
+  .techcol.grid .th{background:var(--grid)}
+  .techcol.nano .th{background:var(--nano)}
+  .techcol.rare .th{background:var(--rare)}
+  .techrow{
+    padding:9px 14px;border-top:1px solid var(--line-soft);font-size:.84rem;
+    display:flex;justify-content:space-between;gap:10px;
+  }
+  .techrow .n{color:var(--ink);font-weight:500}
+  .techrow .d{color:var(--faint);font-size:.78rem;text-align:right;max-width:60%}
+
+  /* species */
+  .spec{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+  .spec h3{font-family:'Chakra Petch';font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:.9rem;margin:0 0 4px}
+  .spec .sub{font-size:.75rem;color:var(--faint);margin:0 0 9px;font-family:'Chakra Petch';letter-spacing:.08em}
+  .spec p{margin:0;font-size:.85rem;color:var(--muted)}
+  .spec.home{border-color:var(--cyan-dim);box-shadow:0 0 0 1px rgba(84,215,236,.15) inset}
+  .homeflag{font-family:'Chakra Petch';font-size:.6rem;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase;float:right}
+
+  .no-results{
+    display:none;text-align:center;padding:50px 20px;color:var(--faint);
+    font-family:'Chakra Petch';letter-spacing:.14em;text-transform:uppercase;font-size:.85rem;
+  }
+  .hidden{display:none !important}
+  mark{background:rgba(84,215,236,.28);color:var(--ink);border-radius:2px;padding:0 1px}
+
+  footer{
+    border-top:1px solid var(--line);margin-top:50px;padding:26px 0 60px;
+    color:var(--faint);font-size:.8rem;
+  }
+  footer b{color:var(--muted);font-family:'Chakra Petch';letter-spacing:.06em}
+
+  @media (max-width:560px){
+    header.hero{padding:40px 0 24px}
+    .sec-head{flex-wrap:wrap;gap:8px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hexfield"></div>
+  <div class="wrap">
+    <p class="eyebrow">Galactic Council Field Manual</p>
+    <h1 class="title">Eclipse<span class="bar"> / </span>Second Dawn</h1>
+    <p class="subtitle">Rules Reference &amp; Quick Answers</p>
+    <p class="lede">Everything you need mid-game, without flipping the rulebook. Type a question in the search box below — it filters every card and FAQ on the page live. Built for our table.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="searchbar">
+    <div class="search-inner">
+      <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      <input id="search" type="text" placeholder="Search rules… e.g. pinning, positron, ancients, upkeep, retreat" autocomplete="off" spellcheck="false">
+      <button class="clear-btn" id="clear" aria-label="Clear search">&times;</button>
+    </div>
+    <div class="search-meta" id="meta"></div>
+  </div>
+
+  <nav class="jump">
+    <a href="#flow">Round Flow</a>
+    <a href="#actions">The 6 Actions</a>
+    <a href="#colony">Colony &amp; Population</a>
+    <a href="#combat">Combat</a>
+    <a href="#ships">Ships &amp; Blueprints</a>
+    <a href="#tech">Tech Reference</a>
+    <a href="#species">Species</a>
+    <a href="#faq">FAQ</a>
+    <a href="#gotchas">Common Mistakes</a>
+  </nav>
+
+  <!-- ROUND FLOW -->
+  <section id="flow">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Round Flow</h2></div>
+    <p class="sec-desc">The game runs 8 rounds. Each round is four phases in this order. Most VP at the end wins; ties go to whoever has the most resources in storage.</p>
+    <ol class="steps">
+      <li data-search="action phase turn order pass start player influence disc" ><b>Action Phase.</b> Starting with the Start Player and going clockwise, each player takes <em>one Action or Pass</em> per turn, looping until everyone has passed. The number of Actions you can take is limited only by how many Influence Discs you have.</li>
+      <li data-search="combat phase battles resolve conquer sectors"><b>Combat Phase.</b> Resolve every battle (sectors with opposing ships), then attack population, influence empty sectors, claim discovery tiles, and repair damage.</li>
+      <li data-search="upkeep phase pay money civilization cost produce resources income"><b>Upkeep Phase.</b> Pay your Civilization Upkeep Cost with Money income, then produce Materials and Science from your population.</li>
+      <li data-search="cleanup phase return influence discs draw tech tiles round marker"><b>Cleanup Phase.</b> Return Influence Discs from your Action Track, refill the Tech Tray, flip Colony Ships &amp; Summary Tile face up, advance the Round Marker.</li>
+    </ol>
+    <div class="callout" data-search="passing first pass 2 money start player reactions">
+      <b>Passing</b> The first player to Pass each round takes 2 Money and next round's Start Player Tile. After you've passed, on later turns you may only take a weaker <strong>Reaction</strong> (one Upgrade, Build, or Move activation — no tech bonuses apply) or Pass again.
+    </div>
+  </section>
+
+  <!-- ACTIONS -->
+  <section id="actions">
+    <div class="sec-head"><span class="sec-num">02</span><h2>The Six Actions</h2></div>
+    <p class="sec-desc">Every Action moves your <strong>leftmost</strong> Influence Disc onto that Action's space. You can repeat the same Action as many times as you have discs. The rightmost empty spot on your Influence Track = the Money you owe at upkeep, so more actions cost more upkeep.</p>
+
+    <div class="grid two">
+      <div class="card" data-search="explore action reveal sector hex tile wormhole connection place discard discovery tile ancients zone ring">
+        <h3><span class="glyph" style="background:var(--cyan)">EXP</span>Explore</h3>
+        <p>Flip the top Sector from the I, II, or III stack next to a sector you control or have an unpinned ship in. Then <strong>place it or discard it.</strong> A placed sector must connect a wormhole to where you explored from.</p>
+        <p>If it has a discovery symbol, add a face-down Discovery Tile. If it has Ancient symbols, stack that many Ancients on the tile. Undefended discovery tiles can be taken right away; you may then drop an Influence Disc to control the sector.</p>
+        <p><em>You can't take control of a sector with living Ancients</em> — clear them in combat first.</p>
+      </div>
+
+      <div class="card" data-search="research action tech tile science cost discount tech track military grid nano rare minimum cost">
+        <h3><span class="glyph" style="background:var(--cyan)">RES</span>Research</h3>
+        <p>Buy an available Tech Tile from the Tray by paying its <strong>Science</strong> cost. Place it on the leftmost open space of its track (Military, Grid, or Nano).</p>
+        <p>Each tech in a category gives a growing discount on the next one — but every tech has a <strong>minimum cost</strong> you always pay. Buy cheap-to-expensive within a category to maximize discounts.</p>
+        <p>Max 7 tiles per track. Can't cover printed starting techs, can't research a duplicate, can't discard a researched tile.</p>
+      </div>
+
+      <div class="card" data-search="upgrade action ship parts blueprint energy consumption production return tray drive part">
+        <h3><span class="glyph" style="background:var(--cyan)">UPG</span>Upgrade</h3>
+        <p>Per activation: (1) return any number of ship parts to the tray, then (2) move one part from the tray onto any ship blueprint. Upgrading a blueprint upgrades <strong>every</strong> ship of that type instantly.</p>
+        <p>A blueprint's total <strong>Energy Consumption must not exceed its Energy Production.</strong> You need the matching researched tech for any non-basic part. Interceptors, Cruisers, and Dreadnoughts need at least one Drive; Starbases can't take Drives.</p>
+      </div>
+
+      <div class="card" data-search="build action ships structures materials cost interceptor cruiser dreadnought starbase orbital monolith">
+        <h3><span class="glyph" style="background:var(--cyan)">BUI</span>Build</h3>
+        <p>Build one ship or structure per activation in a sector you control, paying its <strong>Materials</strong> cost.</p>
+        <p>Costs: Interceptor <strong>3</strong> · Cruiser <strong>5</strong> · Dreadnought <strong>8</strong> · Starbase <strong>3</strong> · Orbital <strong>4</strong> · Monolith <strong>10</strong>. Starbases, Orbitals, and Monoliths need their tech first. One Monolith and one Orbital max per sector.</p>
+      </div>
+
+      <div class="card" data-search="move action ships movement value drives wormhole pinning pinned gcds starbase">
+        <h3><span class="glyph" style="background:var(--cyan)">MOV</span>Move</h3>
+        <p>Move one ship up to its <strong>Movement Value</strong> (total Drive value) in sectors per activation, only across wormhole connections.</p>
+        <p><strong>Pinning:</strong> each opponent ship in a sector pins one of your ships, and pinned ships can't leave a sector containing opponents. The GCDS pins everything in the Galactic Center.</p>
+      </div>
+
+      <div class="card" data-search="influence action move influence discs control sector colony ships flip faceup uncontrolled">
+        <h3><span class="glyph" style="background:var(--cyan)">INF</span>Influence</h3>
+        <p>Per activation, move one Influence Disc — from your track or an existing sector — to take/drop control. Plus, this action flips up to two used Colony Ships face up again.</p>
+        <p>Removing a disc from a sector returns all its population cubes to your tracks. You can't use two activations in the same sector in one Influence action.</p>
+      </div>
+    </div>
+
+    <div class="callout draco" data-search="descendants draco activations per action explore research upgrade build move influence">
+      <b>Draco activations</b> Descendants of Draco get: EXP&nbsp;1 · RES&nbsp;1 · UPG&nbsp;2 · BUI&nbsp;2 · MOV&nbsp;2 · INF&nbsp;2 per action. (Your Explore flips <strong>two</strong> sectors — pick one or none.)
+    </div>
+  </section>
+
+  <!-- COLONY -->
+  <section id="colony">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Colony Ships &amp; Population</h2></div>
+    <p class="sec-desc">Controlling a sector doesn't produce anything on its own — you have to colonize the planets.</p>
+    <div class="grid two">
+      <div class="card" data-search="colony ships population cubes move planets population squares only way flip facedown action reaction upkeep">
+        <h3>How Colonizing Works</h3>
+        <p>Colony Ships are the <strong>only</strong> way to move population cubes onto planets. Any time during your Action or Reaction, flip a face-up Colony Ship face-down to move one cube from your track to a matching empty population square in a sector you control.</p>
+        <p>It's a deliberate move, <em>not automatic</em> — an uncolonized sector produces nothing even if you control it. You can also use remaining colony ships during Upkeep (but not into sectors with opponent ships).</p>
+      </div>
+      <div class="card" data-search="population squares gray advanced star symbol orbital science money materials tech advanced mining labs economy">
+        <h3>Square Types</h3>
+        <p><strong>Gray squares</strong> take a cube from any track. <strong>Advanced squares</strong> (with a star) need the matching Advanced tech: Materials → Advanced Mining, Science → Advanced Labs, Money → Advanced Economy (or Metasynthesis for any).</p>
+        <p><strong>Orbitals</strong> add a square that takes only a Science or Money cube.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMBAT -->
+  <section id="combat">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Combat</h2></div>
+    <p class="sec-desc">Battles resolve in <strong>descending Sector Number</strong> order. In each sector, players fight two at a time in reverse order of entry — the last to arrive is the Attacker, and whoever controls the sector always defends last. Ancients, Guardians, and the GCDS always defend.</p>
+
+    <div class="formula" data-search="hit formula die computers shields six burst blank miss to hit value">
+      <span class="box">Die</span><span class="op">+</span>
+      <span class="box comp">Computers</span><span class="op">−</span>
+      <span class="box shield">Shields</span><span class="op">≥</span>
+      <span class="box hit">6 = HIT</span>
+    </div>
+    <p class="sec-desc" data-search="burst always hit blank always miss regardless bonuses">A <strong>burst</strong> symbol always hits; a <strong>blank</strong> always misses — no matter the bonuses. Everything else uses the formula above.</p>
+
+    <ol class="steps">
+      <li data-search="determine order attacker defender initiative chevrons ties defender"><b>Order &amp; Initiative.</b> Set attacker/defender, then activate ship types by <em>Initiative</em> (total chevrons on the blueprint, highest first). Ties go to the defender.</li>
+      <li data-search="fire missiles once initiative order plasma flux missile"><b>Fire Missiles.</b> All missiles fire <em>once</em> at the start, in initiative order. Roll one die per missile symbol.</li>
+      <li data-search="engagement round fire cannons retreat repeated"><b>Engagement Rounds.</b> Each ship type activates in initiative order and chooses to <em>Fire Cannons</em> or <em>Retreat</em>. Repeat rounds until only one side's ships remain.</li>
+      <li data-search="damage hull value destroyed damage cube burst"><b>Damage.</b> Each hit deals damage equal to its burst count. Damage over a ship's <em>Hull</em> value destroys it; lesser damage is marked with cubes and resets after the battle.</li>
+      <li data-search="reputation tiles draw max 5 order of entry defender kill bonus"><b>Reputation Tiles.</b> After all battles in a sector, each participant draws up to <em>5</em> tiles (1 for fighting, +1/+2/+3 per kill by ship size), keeps one, returns the rest.</li>
+    </ol>
+
+    <div class="card" data-search="retreat rules move edge wormhole controlled sector no opponent ships next activation attacked" style="margin-top:14px">
+      <h3>Retreating</h3>
+      <p>Declare a retreat on a ship type's activation by moving them to the edge toward a sector you control with no opponents. They complete the retreat on your <strong>next</strong> activation. Retreating ships can't attack but can still be attacked until they leave. If <em>all</em> your remaining ships retreat, you get no participation reputation tile.</p>
+    </div>
+
+    <div class="callout" data-search="non player opponents ancients guardians gcds another player rolls dice largest smallest">
+      <b>vs. Ancients / GCDS</b> Another player rolls for the non-player ships. Their hits are assigned to destroy your ships largest-first; if none can die, they deal max damage largest-first.
+    </div>
+
+    <div class="callout" data-search="attack population combat phase end neutron bombs zero shield destroy cube">
+      <b>After battles</b> Surviving ships attack enemy population cubes once with non-missile weapons (cubes count as 0 shields). <strong>Neutron Bombs</strong> tech wipes all cubes in a sector automatically.
+    </div>
+  </section>
+
+  <!-- SHIPS -->
+  <section id="ships">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Ships &amp; Blueprint Parts</h2></div>
+    <p class="sec-desc">Every symbol on a blueprint is cumulative across all its parts. Bigger ships cost more but hold more parts.</p>
+    <div class="grid three">
+      <div class="card" data-search="weapons cannons ion plasma antimatter die roll color damage burst"><h3>Weapons</h3><p>Each weapon symbol rolls one die of its color. Damage = the burst count shown.</p></div>
+      <div class="card" data-search="computers positron gluon electron plus to hit add die roll"><h3>Computers</h3><p>Added to your die rolls to hit. Electron <strong>+1</strong>, Positron <strong>+2</strong>, Gluon <strong>+3</strong>.</p></div>
+      <div class="card" data-search="shields gauss phase absorption minus subtract opponent hit"><h3>Shields</h3><p>Subtracted from enemy rolls to hit you. Gauss <strong>−1</strong>, Phase <strong>−2</strong>.</p></div>
+      <div class="card" data-search="hull improved sentient conifold absorb damage destroyed"><h3>Hull</h3><p>How much damage a ship absorbs before it's destroyed.</p></div>
+      <div class="card" data-search="drives fusion nuclear tachyon transition movement value initiative"><h3>Drives</h3><p>Total value = Movement Value. Drive chevrons also add Initiative.</p></div>
+      <div class="card" data-search="energy sources nuclear fusion tachyon zero point production consumption"><h3>Sources</h3><p>Produce energy. Every part's consumption must stay under your total production.</p></div>
+    </div>
+    <div class="callout" data-search="each ship part own tech positron gluon separate research required">
+      <b>One tech per part</b> Each upgradeable part needs its own researched tech. Having Gluon Computer tech does <strong>not</strong> let you use Positron Computers — they're separate.
+    </div>
+  </section>
+
+  <!-- TECH -->
+  <section id="tech">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Technology Reference</h2></div>
+    <p class="sec-desc">Color-coded by track, exactly like the Tech Tray. Progress on a track scores VP at 4/5/6/7 tiles (1/2/3/5 VP).</p>
+    <div class="techcols">
+      <div class="techcol mil" data-search="military technologies neutron bombs starbase plasma cannon phase shield advanced mining tachyon source gluon computer plasma missile">
+        <div class="th">Military</div>
+        <div class="techrow"><span class="n">Neutron Bombs</span><span class="d">auto-kill population</span></div>
+        <div class="techrow"><span class="n">Starbase</span><span class="d">build starbases</span></div>
+        <div class="techrow"><span class="n">Plasma Cannon</span><span class="d">stronger weapon</span></div>
+        <div class="techrow"><span class="n">Phase Shield</span><span class="d">−2 shield</span></div>
+        <div class="techrow"><span class="n">Advanced Mining</span><span class="d">adv. materials squares</span></div>
+        <div class="techrow"><span class="n">Tachyon Source</span><span class="d">big energy</span></div>
+        <div class="techrow"><span class="n">Gluon Computer</span><span class="d">+3 to hit</span></div>
+        <div class="techrow"><span class="n">Plasma Missile</span><span class="d">2-shot missile</span></div>
+      </div>
+      <div class="techcol grid" data-search="grid technologies gauss shield fusion source improved hull positron computer advanced economy tachyon drive antimatter cannon quantum grid">
+        <div class="th">Grid</div>
+        <div class="techrow"><span class="n">Gauss Shield</span><span class="d">−1 shield</span></div>
+        <div class="techrow"><span class="n">Fusion Source</span><span class="d">more energy</span></div>
+        <div class="techrow"><span class="n">Improved Hull</span><span class="d">+2 hull</span></div>
+        <div class="techrow"><span class="n">Positron Computer</span><span class="d">+2 to hit</span></div>
+        <div class="techrow"><span class="n">Advanced Economy</span><span class="d">adv. money squares</span></div>
+        <div class="techrow"><span class="n">Tachyon Drive</span><span class="d">3 movement</span></div>
+        <div class="techrow"><span class="n">Antimatter Cannon</span><span class="d">4-burst weapon</span></div>
+        <div class="techrow"><span class="n">Quantum Grid</span><span class="d">+2 influence discs</span></div>
+      </div>
+      <div class="techcol nano" data-search="nano technologies nanorobots fusion drive orbital advanced robotics advanced labs monolith wormhole generator artifact key">
+        <div class="th">Nano</div>
+        <div class="techrow"><span class="n">Nanorobots</span><span class="d">+1 build activation</span></div>
+        <div class="techrow"><span class="n">Fusion Drive</span><span class="d">2 movement</span></div>
+        <div class="techrow"><span class="n">Orbital</span><span class="d">build orbitals</span></div>
+        <div class="techrow"><span class="n">Advanced Robotics</span><span class="d">+1 influence disc</span></div>
+        <div class="techrow"><span class="n">Advanced Labs</span><span class="d">adv. science squares</span></div>
+        <div class="techrow"><span class="n">Monolith</span><span class="d">build monoliths (3 VP)</span></div>
+        <div class="techrow"><span class="n">Wormhole Generator</span><span class="d">move over half-wormholes</span></div>
+        <div class="techrow"><span class="n">Artifact Key</span><span class="d">5 resources per artifact</span></div>
+      </div>
+      <div class="techcol rare" data-search="rare technologies antimatter splitter conifold field neutron absorber absorption shield cloaking device improved logistics sentient hull soliton cannon transition drive warp portal flux missile pico modulator ancient labs zero point source metasynthesis">
+        <div class="th">Rare (one each)</div>
+        <div class="techrow"><span class="n">Cloaking Device</span><span class="d">2 ships to pin you</span></div>
+        <div class="techrow"><span class="n">Improved Logistics</span><span class="d">+1 move activation</span></div>
+        <div class="techrow"><span class="n">Pico Modulator</span><span class="d">+2 upgrade activations</span></div>
+        <div class="techrow"><span class="n">Sentient Hull</span><span class="d">+1 hull &amp; computer</span></div>
+        <div class="techrow"><span class="n">Antimatter Splitter</span><span class="d">split AM damage</span></div>
+        <div class="techrow"><span class="n">Neutron Absorber</span><span class="d">immune to bombs</span></div>
+        <div class="techrow"><span class="n">Warp Portal</span><span class="d">place a warp portal</span></div>
+        <div class="techrow"><span class="n">Ancient Labs</span><span class="d">draw a discovery tile</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPECIES -->
+  <section id="species">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Species Cheat Sheet</h2></div>
+    <p class="sec-desc">No species has a special win condition — everyone races for VP. Each just has unique abilities and starting kit.</p>
+    <div class="grid two">
+      <div class="spec home" data-search="descendants of draco 1 vp per ancient explore two sectors coexist ancients influence disc no discovery tile fusion drive sector 228">
+        <span class="homeflag">Our Table</span>
+        <h3>Descendants of Draco</h3>
+        <p class="sub">Start · 3 Mat / 4 Sci / 2 Money · Fusion Drive · Sector 228</p>
+        <p><strong>+1 VP per Ancient</strong> left alive on the board at game end. Explore flips 2 sectors (pick 1 or none). You can share sectors with Ancients and even control them with a disc — but you can't fight Ancients or take discovery tiles from their sectors.</p>
+      </div>
+      <div class="spec" data-search="eridani empire reputation tiles two fewer influence discs extra energy gauss shield fusion drive plasma cannon sector 222">
+        <h3>Eridani Empire</h3>
+        <p class="sub">Start · 26 Money · Gauss/Fusion/Plasma · Sector 222</p>
+        <p>Draw 2 reputation tiles at setup. Start with 2 fewer influence discs. Ships have bonus energy production.</p>
+      </div>
+      <div class="spec" data-search="hydran progress research two tech tiles per action advanced labs science population sector 224">
+        <h3>Hydran Progress</h3>
+        <p class="sub">Start · 6 Science · Advanced Labs · Sector 224</p>
+        <p>Research 2 tech tiles per Research action. Start with a cube on an advanced science square.</p>
+      </div>
+      <div class="spec" data-search="planta population cubes destroyed opponent ships 1 extra vp per controlled sector reduced initiative extra computers starbase sector 226 explore two">
+        <h3>Planta</h3>
+        <p class="sub">Start · Starbase · Sector 226</p>
+        <p>+1 VP per controlled sector, explore 2 sectors per activation. But population is auto-killed by enemy ships and ships have lower initiative.</p>
+      </div>
+      <div class="spec" data-search="mechanema three upgrade activations cheaper building costs positron computer sector 230">
+        <h3>Mechanema</h3>
+        <p class="sub">Start · Positron Computer · Sector 230</p>
+        <p>3 Upgrade activations per action, cheaper building costs across the board.</p>
+      </div>
+      <div class="spec" data-search="orion hegemony start cruiser increased initiative neutron bombs gauss shield extra energy sector 232">
+        <h3>Orion Hegemony</h3>
+        <p class="sub">Start · Cruiser · Neutron Bombs / Gauss · Sector 232</p>
+        <p>Start with a Cruiser instead of an Interceptor, higher initiative, bonus ship energy.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Frequently Asked</h2></div>
+    <p class="sec-desc">Pulled straight from the official rulebook FAQ. Tap to expand.</p>
+    <div class="faq">
+      <details data-search="gluon computer positron computer ship parts own tech required">
+        <summary>If I have Gluon Computer tech, can I use Positron Computer parts?</summary>
+        <div class="ans"><p>No. Each ship part needs its <strong>own</strong> tech (except the default parts: Ion Cannon, Nuclear Drive, Nuclear Source, Hull, Electron Computer).</p></div>
+      </details>
+      <details data-search="descendants draco ancients destroyed still control sector discovery tile">
+        <summary>If Draco clears Ancients but keeps control, do they get the discovery tile?</summary>
+        <div class="ans"><p>Yes — they take the discovery tile at the <em>end of the Combat Phase</em>.</p></div>
+      </details>
+      <details data-search="not enough influence discs quantum grid advanced robotics return upkeep">
+        <summary>I don't have enough Influence Discs. What can I do?</summary>
+        <div class="ans"><p>Use the Influence action to return up to two discs from sectors to your track. Research <em>Advanced Robotics</em> or <em>Quantum Grid</em> for more discs. Or deliberately overspend and return some at upkeep.</p></div>
+      </details>
+      <details data-search="best techs expensive discount category order afford">
+        <summary>The good techs are so expensive. How do I afford them?</summary>
+        <div class="ans"><p>Techs in the same category discount each other. Buy them <strong>cheapest-to-most-expensive</strong> within a category to get the biggest total discount.</p></div>
+      </details>
+      <details data-search="ships blown up win more battles shoot first hit shields hull missiles">
+        <summary>My ships keep dying. How do I win more battles?</summary>
+        <div class="ans"><p>Get an edge: upgrade <em>Drives</em> for initiative (shoot first), use <em>Missiles</em> before close combat, add <em>Shields</em> to blank out enemy computers, add <em>Hull</em> to survive, and grab <em>Discovery</em> ship parts.</p></div>
+      </details>
+      <details data-search="interceptors too small useful pinning energy source specialized">
+        <summary>Are Interceptors too small to bother with?</summary>
+        <div class="ans"><p>No — they shine when specialized (a better energy source lets them pack a punch), and they're great for <strong>pinning</strong> larger ships to waste opponents' actions.</p></div>
+      </details>
+      <details data-search="shields useful opponents computers hit">
+        <summary>Are Shields useful if my opponent has no Computers?</summary>
+        <div class="ans"><p>No. But if they have no computers, they probably can't hit you anyway (they'd need a natural burst). Use that to your advantage.</p></div>
+      </details>
+      <details data-search="all ships retreat destroyed reputation tile participation penalty">
+        <summary>If all my ships retreat but die anyway, do I get a reputation tile?</summary>
+        <div class="ans"><p>No. Ships incur the retreat penalty the moment they attempt to retreat, whether or not they escape.</p></div>
+      </details>
+      <details data-search="cloaking device move through opponent ships act of aggression">
+        <summary>Can I move through an enemy sector with Cloaking Device without an Act of Aggression?</summary>
+        <div class="ans"><p>Yes — as long as your ships remain unpinned.</p></div>
+      </details>
+      <details data-search="descendants planta explore ability optional choose after first sector">
+        <summary>Do I have to use Draco's or Planta's double-Explore ability?</summary>
+        <div class="ans"><p>No. You can decide after seeing the first sector whether to flip a second one.</p></div>
+      </details>
+      <details data-search="remove population cubes without abandoning sector influence action two activations">
+        <summary>Can I remove population cubes without abandoning the sector?</summary>
+        <div class="ans"><p>Not directly. You can do it with the Influence action by removing the disc (which returns the cubes) and then re-placing the disc in a separate activation.</p></div>
+      </details>
+      <details data-search="ancient labs discovery tile place ancient cruiser orbital starting sector 2vp">
+        <summary>Where do I place things from an Ancient Labs discovery tile?</summary>
+        <div class="ans"><p>In your Starting Sector. If you don't control your Starting Sector, take the tile as 2 VP instead.</p></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- GOTCHAS -->
+  <section id="gotchas">
+    <div class="sec-head"><span class="sec-num">09</span><h2>Common Mistakes at the Table</h2></div>
+    <p class="sec-desc">The rules people forget most often.</p>
+    <div class="grid two">
+      <div class="card" data-search="leftmost influence disc action space rightmost empty upkeep money"><h3>Disc Direction</h3><p>Always spend your <strong>leftmost</strong> disc on an action. Returned discs go to the <strong>rightmost</strong> open space. The rightmost empty spot shows your Money upkeep.</p></div>
+      <div class="card" data-search="control sector produce nothing colonize colony ship population"><h3>Control ≠ Production</h3><p>Controlling a sector alone produces nothing. You must colonize its planets with Colony Ships.</p></div>
+      <div class="card" data-search="energy consumption production blueprint legal upgrade"><h3>Energy Budget</h3><p>A blueprint is illegal if consumption exceeds production. Check before you build or upgrade.</p></div>
+      <div class="card" data-search="missiles fire once start battle not every round"><h3>Missiles Fire Once</h3><p>Missiles fire a single time at the start of the battle — not every engagement round.</p></div>
+      <div class="card" data-search="initiative ties defender wins order attack"><h3>Initiative Ties</h3><p>Ties in initiative go to the <strong>defender</strong>, not the attacker.</p></div>
+      <div class="card" data-search="reputation tiles max five draw participation kills"><h3>Rep Tile Cap</h3><p>You draw a maximum of 5 reputation tiles per battle, keep only 1, and return the rest.</p></div>
+    </div>
+  </section>
+
+  <div class="no-results" id="noResults">No rules match that search — try a different term.</div>
+
+  <footer>
+    <p><b>Eclipse: Second Dawn for the Galaxy</b> — unofficial player reference condensed from the rulebook (2020 edition) and Action Andy's compact rules. For edge cases, the printed rulebook is the final word.</p>
+    <p style="margin-top:8px">Share this file anywhere — it's a single self-contained page. Search works offline.</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const search = document.getElementById('search');
+  const clearBtn = document.getElementById('clear');
+  const meta = document.getElementById('meta');
+  const noResults = document.getElementById('noResults');
+  const sections = Array.from(document.querySelectorAll('section'));
+
+  // gather searchable items
+  const items = Array.from(document.querySelectorAll('[data-search]'));
+  items.forEach(el=>{
+    el._text = (el.getAttribute('data-search') + ' ' + el.textContent).toLowerCase();
+    el._original = el.innerHTML;
+  });
+
+  function clearMarks(){
+    items.forEach(el=>{ if(el.innerHTML !== el._original) el.innerHTML = el._original; });
+  }
+
+  function run(q){
+    q = q.trim().toLowerCase();
+    clearBtn.style.display = q ? 'block' : 'none';
+
+    if(!q){
+      clearMarks();
+      items.forEach(el=>el.classList.remove('hidden'));
+      sections.forEach(s=>s.classList.remove('hidden'));
+      noResults.style.display='none';
+      meta.textContent='';
+      document.querySelectorAll('.faq details').forEach(d=>d.open=false);
+      return;
+    }
+
+    const terms = q.split(/\s+/);
+    let count = 0;
+    clearMarks();
+
+    items.forEach(el=>{
+      const match = terms.every(t=>el._text.includes(t));
+      el.classList.toggle('hidden', !match);
+      if(match){
+        count++;
+        // auto-open matching FAQ
+        const det = el.closest('details');
+        if(det) det.open = true;
+      } else {
+        const det = el.closest('details');
+        if(det && det===el) det.open=false;
+      }
+    });
+
+    // hide sections with no visible items
+    sections.forEach(s=>{
+      const visible = s.querySelectorAll('[data-search]:not(.hidden)').length;
+      s.classList.toggle('hidden', visible===0);
+    });
+
+    noResults.style.display = count===0 ? 'block' : 'none';
+    meta.textContent = count===0 ? '' : count + (count===1?' result':' results');
+  }
+
+  search.addEventListener('input', e=>run(e.target.value));
+  clearBtn.addEventListener('click', ()=>{ search.value=''; run(''); search.focus(); });
+
+  // keyboard: "/" focuses search
+  document.addEventListener('keydown', e=>{
+    if(e.key==='/' && document.activeElement!==search){ e.preventDefault(); search.focus(); }
+    if(e.key==='Escape' && document.activeElement===search){ search.value=''; run(''); search.blur(); }
+  });
+})();
+</script>
+</body>
+</html>
