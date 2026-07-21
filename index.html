@@ -662,14 +662,14 @@ const SKIPS = { bi:[6,7], ps:[3,6], dc:[3,6], ec:[5,7] };
 // Vote tables — from updatevotingscore.xlsx (authoritative). Keyed by strike BAND.
 // Bands: 0 strikes | 1-2 | 3-4 | 5-6 | 7+.  PC votes fall as strikes rise; NPC votes rise as strikes rise.
 const PC_VOTES = {
-  L:{0:10000, 2:7500,  4:5000,  6:2500,  99:1000},
-  M:{0:20000, 2:15000, 4:10000, 6:7500,  99:5000},
-  H:{0:35000, 2:25000, 4:15000, 6:12500, 99:10000}
+  L:{0:8000,  2:5500,  4:4000,  6:2500,  99:1000},
+  M:{0:14000, 2:11000, 4:8000,  6:5000,  99:2000},
+  H:{0:19000, 2:14000, 4:11000, 6:7000,  99:3000}
 };
 const NPC_VOTES = {
-  L:{0:1000,  2:2500,  4:5000,  6:7500,  99:10000},
-  M:{0:5000,  2:7500,  4:10000, 6:15000, 99:20000},
-  H:{0:10000, 2:12500, 4:15000, 6:25000, 99:35000}
+  L:{0:1000,  2:2500,  4:4000,  6:5500,  99:8000},
+  M:{0:2000,  2:5000,  4:8000,  6:11000, 99:14000},
+  H:{0:3000,  2:7000,  4:11000, 6:14000, 99:19000}
 };
 function strikeBand(n){
   if(n<=0) return 0;
@@ -725,11 +725,30 @@ const DISTRICT_CENTERS = {1:{top:38,left:28},2:{top:77,left:49},3:{top:29,left:7
   5:{top:66,left:75},6:{top:52,left:17},7:{top:71,left:20},8:{top:51,left:49},9:{top:23,left:48}};
 
 // ══════════════════════ STATE ══════════════════════
+function blankAward(){
+  return {
+    pc:'online',
+    major:'', minor:'',
+    shadows:[ {npc:'', d1:'', d2:'', d3:''}, {npc:'', d1:'', d2:'', d3:''} ]
+  };
+}
 function blankDistrict(slots){
   return { slots:Array(slots).fill(null),
            votes:Object.fromEntries(PKEYS.map(k=>[k,0])),
-           strikes:{online:0,inperson:0}, rep:0, sealed:false, seats:{} };
+           strikes:{online:0,inperson:0}, rep:0, sealed:false, seats:{},
+           award:blankAward() };
 }
+// Lazily upgrade districts loaded from older saved states
+function getAward(d){
+  const ds=STATE.districts[d];
+  if(!ds.award) ds.award=blankAward();
+  if(!Array.isArray(ds.award.shadows) || ds.award.shadows.length<2){
+    ds.award.shadows=[ {npc:'',d1:'',d2:'',d3:''}, {npc:'',d1:'',d2:'',d3:''} ];
+  }
+  return ds.award;
+}
+function setAwardField(d, field, val){ getAward(d)[field]=val; }
+function setShadowField(d, idx, field, val){ getAward(d).shadows[idx][field]=val; }
 function blankCampaign(){
   return { district:'', shadows:[], shadowDist:{}, card:null, order:[], chosen:null,
            action:'', totals:{R:0,B:0,T:0}, history:[], muds:[],
@@ -1248,8 +1267,22 @@ function campLock(table){
       if(idx !== -1) tds.slots[idx] = npc;
     }
   });
+
+  // ── Auto-populate the GM award panel for this district ──
+  const aw = getAward(dnum);
+  aw.pc = table;
+  C.shadows.slice(0,2).forEach((npc, i) => {
+    const picks = C.shadowDist[npc] || [];
+    aw.shadows[i] = {
+      npc,
+      d1: picks[0] ? String(picks[0]) : '',
+      d2: picks[1] ? String(picks[1]) : '',
+      d3: picks[2] ? String(picks[2]) : ''
+    };
+  });
+
   renderCampaign(); renderElection && renderElection();
-  flash(`${PARTIES[table].label} locked in for D${dnum}. Action slots updated.`);
+  flash(`${PARTIES[table].label} locked in for D${dnum}. GM award panel auto-populated.`);
 }
 
 function campUnlock(table){
@@ -1767,7 +1800,15 @@ function gmSummary(){
 }
 
 function gmGrid(){
-  $('gmDistGrid').innerHTML=[1,2,3,4,5,6,7,8,9].map(d=>{
+  $('gmDistGrid').innerHTML=[1,2,3,4,5,6,7,8,9].map(d=>gmCard(d)).join('');
+}
+function gmCardRefresh(d){
+  const el=$('gmdist-'+d);
+  if(el) el.outerHTML=gmCard(d); else gmGrid();
+  gmSummary();
+}
+function gmCard(d){
+  {
     const ds=STATE.districts[d], sl=strikeLevel(d), filled=ds.slots.filter(s=>s!==null).length;
     const slots=ds.slots.map((s,i)=>{
       const p=s?PARTIES[s]:null;
@@ -1777,7 +1818,10 @@ function gmGrid(){
       <td><input type="number" value="${ds.votes[k]||0}" onchange="setVotes(${d},'${k}',this.value)"></td>
       <td><button class="btn sm" onclick="adjVotes(${d},'${k}')">± adj</button></td></tr>`).join('');
     const others=[1,2,3,4,5,6,7,8,9].filter(x=>x!==d).map(x=>`<option value="${x}">D${x} ${DNAMES[x]}</option>`).join('');
-    return `<div class="gm-dist ${ds.sealed?'sealed':''}">
+    const aw=getAward(d);
+    const otherOpts=(sel)=>[1,2,3,4,5,6,7,8,9].filter(x=>x!==d)
+      .map(x=>`<option value="${x}" ${String(sel)===String(x)?'selected':''}>D${x} ${DNAMES[x]}</option>`).join('');
+    return `<div class="gm-dist ${ds.sealed?'sealed':''}" id="gmdist-${d}">
       <div class="gm-dist-title"><span>D${d}: ${DNAMES[d]}</span>
         <span style="font-size:.64rem;color:var(--muted)">${filled}/${ds.slots.length} · L${sl.lv} ${sl.name}</span></div>
 
@@ -1796,37 +1840,60 @@ function gmGrid(){
       <div class="award">
         <div style="width:100%;font-size:.63rem;color:var(--gold-dim);font-family:'Cinzel',serif;letter-spacing:.1em">AWARD MISSION VOTES
           <span style="color:var(--muted);text-transform:none;letter-spacing:0;font-family:'Crimson Pro',serif;font-size:.68rem">— net strikes ${netStrikes(d)} → band ${bandLabel(strikeBand(netStrikes(d)))}</span></div>
-        <select id="aw-party-${d}" class="dark" style="flex:1;min-width:110px">
-          <option value="online">${PARTIES.online.label}</option>
-          <option value="inperson">${PARTIES.inperson.label}</option>
+        <select id="aw-party-${d}" class="dark" style="flex:1;min-width:110px" onchange="setAwardField(${d},'pc',this.value)">
+          <option value="online"   ${aw.pc==='online'?'selected':''}>${PARTIES.online.label}</option>
+          <option value="inperson" ${aw.pc==='inperson'?'selected':''}>${PARTIES.inperson.label}</option>
         </select>
         <label class="chk"><input type="checkbox" id="aw-fail-${d}"> failed (+1 strike)</label>
         <button class="btn go sm" onclick="award(${d},'L')">Light</button>
         <button class="btn go sm" onclick="award(${d},'M')">Medium</button>
         <button class="btn go sm" onclick="award(${d},'H')">Hard</button>
-        <div style="width:100%;font-size:.64rem;color:var(--muted);margin-top:4px">
-          NPC parties currently in an action slot here (${ds.slots.filter(s=>s&&!PARTIES[s].pc).map(s=>PARTIES[s].short).join(', ')||'none'}) automatically receive matching votes in THIS district. Use the manual Shadow Payout below to also pay out their 2nd/3rd target districts.
+
+        <div style="width:100%;margin-top:7px;padding-top:6px;border-top:1px dashed var(--border)">
+          <div style="font-size:.62rem;color:var(--gold-dim);font-family:'Cinzel',serif;letter-spacing:.09em;margin-bottom:3px">PC PRESENCE SPILL</div>
+          <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:4px">
+            <span style="font-size:.66rem;color:var(--muted);min-width:74px">Major (33%)</span>
+            <select class="dark" style="flex:1;min-width:110px" onchange="setAwardField(${d},'major',this.value)">
+              <option value="">— none —</option>${otherOpts(aw.major)}</select>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:.66rem;color:var(--muted);min-width:74px">Minor (25%)</span>
+            <select class="dark" style="flex:1;min-width:110px" onchange="setAwardField(${d},'minor',this.value)">
+              <option value="">— none —</option>${otherOpts(aw.minor)}</select>
+          </div>
         </div>
-        <div style="width:100%;display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:6px">
-          <span style="font-size:.66rem;color:var(--muted)">Optional presence spill →</span>
-          <select id="aw-spill-${d}" class="dark" style="flex:1;min-width:100px"><option value="">no spill</option>${others}</select>
-          <select id="aw-spilltype-${d}" class="dark" style="width:92px"><option value="0.25">minor 25%</option><option value="0.33">major 33%</option></select>
-        </div>
-        <div style="width:100%;display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border)">
-          <span style="font-size:.66rem;color:var(--muted)">Manual shadow payout →</span>
-          <select id="aw-npc-${d}" class="dark" style="flex:1;min-width:100px">${NPCS.map(k=>`<option value="${k}">${PARTIES[k].label}</option>`).join('')}</select>
-          <input type="text" id="aw-npcd-${d}" class="dark" placeholder="e.g. 5,2,9" style="width:88px" title="Their 1st,2nd,3rd districts">
-          <button class="btn sm" onclick="awardShadow(${d})">Pay 100/33/25%</button>
+
+        <div style="width:100%;margin-top:7px;padding-top:6px;border-top:1px dashed var(--border)">
+          <div style="font-size:.62rem;color:var(--gold-dim);font-family:'Cinzel',serif;letter-spacing:.09em;margin-bottom:3px">SHADOW PARTIES — 100% / 50% / 33%</div>
+          ${[0,1].map(i=>{
+            const sh = aw.shadows[i] || {npc:'',d1:'',d2:'',d3:''};
+            return `<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:4px">
+              <select class="dark" style="flex:1;min-width:96px" onchange="setShadowField(${d},${i},'npc',this.value)">
+                <option value="">— shadow ${i+1} —</option>
+                ${NPCS.map(k=>`<option value="${k}" ${sh.npc===k?'selected':''}>${PARTIES[k].short} ${PARTIES[k].label.replace(/^The /,'')}</option>`).join('')}
+              </select>
+              ${['d1','d2','d3'].map((f,j)=>`<select class="dark" style="width:58px" title="${['1st (100%)','2nd (50%)','3rd (33%)'][j]}" onchange="setShadowField(${d},${i},'${f}',this.value)">
+                <option value="">${j+1}·—</option>
+                ${[1,2,3,4,5,6,7,8,9].map(x=>`<option value="${x}" ${String(sh[f])===String(x)?'selected':''}>${j+1}·D${x}</option>`).join('')}
+              </select>`).join('')}
+            </div>`;
+          }).join('')}
         </div>
       </div>
 
       <table class="vtbl">${votes}</table>
+      <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:4px 0 7px;padding:6px;border:1px dashed var(--border);border-radius:4px">
+        <span style="width:100%;font-size:.62rem;color:var(--gold-dim);font-family:'Cinzel',serif;letter-spacing:.09em">BULK ADJUST — tick parties, enter amount, apply</span>
+        ${PKEYS.map(k=>`<label class="chk" style="margin:0"><input type="checkbox" id="bulk-${d}-${k}"> <span style="color:${PARTIES[k].color}">${PARTIES[k].short}</span></label>`).join('')}
+        <input type="number" id="bulk-amt-${d}" class="dark" placeholder="±votes" style="width:84px" title="Use a negative number to subtract">
+        <button class="btn sm go" onclick="bulkAdjust(${d})">Apply</button>
+      </div>
       <button class="btn ${ds.sealed?'danger':''}" style="width:100%" onclick="toggleSeal(${d})">
         ${ds.sealed?'↺ Untally District':'⚑ Seal &amp; Tally District'}</button>
       ${ds.sealed&&ds.seats?`<div style="font-size:.7rem;color:var(--muted);margin-top:6px;text-align:center">
         ${Object.entries(ds.seats).map(([k,v])=>`<span style="color:${PARTIES[k].color}">${PARTIES[k].short} ${v}</span>`).join(' · ')||'no seats'}</div>`:''}
     </div>`;
-  }).join('');
+  }
 }
 
 const CYCLE=[null,...PKEYS];
@@ -1835,15 +1902,15 @@ function cycleSlot(d,i){
   ds.slots[i]=CYCLE[(CYCLE.indexOf(ds.slots[i])+1)%CYCLE.length];
   renderGM(); if(STATE.currentDistrict===d) buildStatus(d);
 }
-function setVotes(d,k,v){ STATE.districts[d].votes[k]=Math.max(0,parseInt(v)||0); gmSummary(); if(STATE.currentDistrict===d) buildStatus(d); }
+function setVotes(d,k,v){ STATE.districts[d].votes[k]=Math.max(0,parseInt(v)||0); gmSummary(); scheduleSync(); if(STATE.currentDistrict===d) buildStatus(d); }
 function adjVotes(d,k){
   const v=prompt(`Adjust ${PARTIES[k].label} in D${d} by (use −5000 to subtract):`,'0');
   if(v===null) return;
   STATE.districts[d].votes[k]=Math.max(0,(STATE.districts[d].votes[k]||0)+(parseInt(v)||0));
   renderGM(); if(STATE.currentDistrict===d) buildStatus(d);
 }
-function setStrike(d,t,v){ STATE.districts[d].strikes[t]=Math.max(0,parseInt(v)||0); renderGM(); if(STATE.currentDistrict===d) buildStatus(d); }
-function bumpRep(d,n){ const ds=STATE.districts[d]; ds.rep=Math.max(0,(ds.rep||0)+n); renderGM(); if(STATE.currentDistrict===d) buildStatus(d); }
+function setStrike(d,t,v){ STATE.districts[d].strikes[t]=Math.max(0,parseInt(v)||0); gmCardRefresh(d); scheduleSync(); if(STATE.currentDistrict===d) buildStatus(d); }
+function bumpRep(d,n){ const ds=STATE.districts[d]; ds.rep=Math.max(0,(ds.rep||0)+n); gmCardRefresh(d); scheduleSync(); if(STATE.currentDistrict===d) buildStatus(d); }
 
 function bandLabel(b){ return b===0?'0':b===2?'1–2':b===4?'3–4':b===6?'5–6':'7+'; }
 
@@ -1853,71 +1920,85 @@ function bandLabel(b){ return b===0?'0':b===2?'1–2':b===4?'3–4':b===6?'5–6
 // Any NPC party currently holding an action slot in this district is treated as
 // "the shadow party for that district" and receives the matching NPC-table amount
 // in THIS SAME district, using the SAME tier and SAME strike band as the PCs.
+function bandLabelSafe(d){ return bandLabel(strikeBand(netStrikes(d))); }
+
+// ══ ONE-PRESS AWARD ══
+// Pressing Light / Medium / Hard does the whole payout:
+//   • PC party gets PC_VOTES[tier][band] in this district (band = net strikes after reputation)
+//   • Major presence district gets 33% of that PC amount (same PC party)
+//   • Minor presence district gets 25% of that PC amount (same PC party)
+//   • Each of the two shadow parties gets NPC_VOTES[tier][band] in their 1st district,
+//     50% of that in their 2nd, and 33% of that in their 3rd
 function award(d,tier){
-  const party=$('aw-party-'+d).value;
+  const aw = getAward(d);
+  const party = aw.pc || 'online';
   if(!PARTIES[party] || !PARTIES[party].pc){ alert('Select a PC party (Online or In-Person).'); return; }
-  const failed=$('aw-fail-'+d).checked;
-  const ds=STATE.districts[d];
+  const failEl = $('aw-fail-'+d);
+  const failed = failEl ? failEl.checked : false;
+  const ds = STATE.districts[d];
 
   const band = strikeBand(netStrikes(d));
+  const bLbl = bandLabel(band);
+
+  // 1) PC votes in this district
   const pcAmt = PC_VOTES[tier][band];
   ds.votes[party] = (ds.votes[party]||0) + pcAmt;
-  const msgs = [`${PARTIES[party].short} +${fmt(pcAmt)} in D${d} (${tier}, strikes ${netStrikes(d)} → band ${bandLabel(band)})`];
+  const lines = [`${PARTIES[party].short} +${fmt(pcAmt)} in D${d} (${tier}, ${netStrikes(d)} strikes → band ${bLbl})`];
 
-  // Auto-award every NPC shadow party currently occupying a slot in this district.
-  const presentNPCs = [...new Set(ds.slots.filter(s => s && PARTIES[s] && !PARTIES[s].pc))];
-  presentNPCs.forEach(npc => {
-    const npcAmt = NPC_VOTES[tier][band];
-    ds.votes[npc] = (ds.votes[npc]||0) + npcAmt;
-    msgs.push(`${PARTIES[npc].short} +${fmt(npcAmt)}`);
+  // 2) PC presence spill — major 33%, minor 25%
+  const spill = (distKey, rate, label) => {
+    const target = parseInt(aw[distKey]);
+    if(!target || target<1 || target>9 || target===d) return;
+    const amt = Math.round(pcAmt * rate);
+    STATE.districts[target].votes[party] = (STATE.districts[target].votes[party]||0) + amt;
+    lines.push(`${label} D${target} +${fmt(amt)}`);
+  };
+  spill('major', 0.33, 'major');
+  spill('minor', 0.25, 'minor');
+
+  // 3) Shadow parties — 100% / 50% / 33% across their three drawn districts
+  const npcBase = NPC_VOTES[tier][band];
+  const rates = [1, 0.50, 0.33];
+  (aw.shadows||[]).forEach(sh => {
+    if(!sh || !sh.npc || !PARTIES[sh.npc]) return;
+    const picks = [sh.d1, sh.d2, sh.d3].map(x=>parseInt(x));
+    const parts = [];
+    picks.forEach((dist, i) => {
+      if(!dist || dist<1 || dist>9) return;
+      const amt = Math.round(npcBase * rates[i]);
+      STATE.districts[dist].votes[sh.npc] = (STATE.districts[dist].votes[sh.npc]||0) + amt;
+      parts.push(`D${dist} +${fmt(amt)}`);
+    });
+    if(parts.length) lines.push(`${PARTIES[sh.npc].short}: ${parts.join(' · ')}`);
   });
 
-  // Optional manual presence spill (kept as a GM convenience, independent of the table above)
-  const sd=$('aw-spill-'+d).value;
-  if(sd){
-    const rate=parseFloat($('aw-spilltype-'+d).value);
-    const spill=Math.round(pcAmt*rate);
-    STATE.districts[sd].votes[party]=(STATE.districts[sd].votes[party]||0)+spill;
-    msgs.push(`spill +${fmt(spill)} to D${sd}`);
-  }
+  // 4) PC mission bumps district reputation
+  ds.rep = (ds.rep||0) + 1;
 
-  // PC mission bumps district reputation
-  ds.rep=(ds.rep||0)+1;
-
-  // Failed mission records a strike (this affects the BAND on the next award, not this one)
+  // 5) Failed mission records a strike (affects the BAND on the next award, not this one)
   if(failed){
-    ds.strikes[party]=(ds.strikes[party]||0)+1;
-    msgs.push(`${PARTIES[party].short} +1 strike (failed)`);
+    ds.strikes[party] = (ds.strikes[party]||0) + 1;
+    lines.push(`${PARTIES[party].short} +1 strike (failed)`);
+    if(failEl) failEl.checked = false;
   }
 
   renderGM(); if(STATE.currentDistrict===d) buildStatus(d);
-  flash(msgs.join(' · '));
+  flash(lines.join(' · '));
 }
 
-// Manual shadow payout — pays an NPC's 1st/2nd/3rd target districts at 100/33/25%.
-// Base amount now comes from the NPC_VOTES sheet (updatevotingscore.xlsx), banded by
-// THIS district's net strikes — same table the automatic co-award in award() uses.
-function awardShadow(d){
-  const npc=$('aw-npc-'+d).value;
-  const raw=$('aw-npcd-'+d).value.trim();
-  if(!raw){ alert('Enter that shadow party\u2019s 1st,2nd,3rd districts — e.g. 5,2,9'); return; }
-  const dists=raw.split(/[,\s]+/).map(x=>parseInt(x)).filter(x=>x>=1&&x<=9);
-  if(!dists.length){ alert('Could not read district numbers.'); return; }
-  const tier=prompt('Mission tier for this shadow payout? L / M / H','M');
-  if(!tier) return;
-  const T=tier.trim().toUpperCase();
-  if(!NPC_VOTES[T]){ alert('Tier must be L, M or H.'); return; }
-  const band=strikeBand(netStrikes(d));
-  const base=NPC_VOTES[T][band];
-  const rates=[1,0.33,0.25];
-  const parts=[];
-  dists.slice(0,3).forEach((dist,i)=>{
-    const amt=Math.round(base*rates[i]);
-    STATE.districts[dist].votes[npc]=(STATE.districts[dist].votes[npc]||0)+amt;
-    parts.push(`D${dist} +${fmt(amt)}`);
-  });
-  renderGM(); flash(`${PARTIES[npc].short} (${T}, D${d} strikes ${netStrikes(d)} → band ${bandLabel(band)}): ${parts.join(' · ')}`);
+// Adjust several parties in one district at once
+function bulkAdjust(d){
+  const amtEl = $('bulk-amt-'+d);
+  const amt = parseInt(amtEl ? amtEl.value : 0);
+  if(!amt){ alert('Enter an amount (use a negative number to subtract).'); return; }
+  const picked = PKEYS.filter(k => { const el=$(`bulk-${d}-${k}`); return el && el.checked; });
+  if(!picked.length){ alert('Tick at least one party.'); return; }
+  const ds = STATE.districts[d];
+  picked.forEach(k => { ds.votes[k] = Math.max(0, (ds.votes[k]||0) + amt); });
+  renderGM(); if(STATE.currentDistrict===d) buildStatus(d);
+  flash(`${amt>0?'+':''}${fmt(amt)} to ${picked.map(k=>PARTIES[k].short).join(', ')} in D${d}`);
 }
+
 function toggleSeal(d){
   const ds=STATE.districts[d];
   if(ds.sealed){ if(!confirm(`Untally D${d}? Seats will be released.`)) return; ds.sealed=false; ds.seats={}; }
